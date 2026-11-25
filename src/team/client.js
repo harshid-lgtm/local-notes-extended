@@ -68,7 +68,11 @@ export function teamClient(conn, { onAuthLost } = {}) {
 
 export const normalizeUrl = (u) => {
   let s = String(u || '').trim().replace(/\/+$/, '');
-  if (s && !/^https?:\/\//i.test(s)) s = (/^(localhost|127\.|\[::1\])/.test(s) ? 'http://' : 'https://') + s;
+  if (s && !/^https?:\/\//i.test(s)) {
+    const host = s.replace(/^\/\//, '').split(/[/:]/)[0];
+    const local = /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|\[::1\])/i.test(host) || /\.local$/i.test(host);
+    s = `${local ? 'http' : 'https'}://${s}`;
+  }
   return s;
 };
 

@@ -1,6 +1,6 @@
 {
   "name": "local-notes-extended",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "A calm, Notion-style editor for markdown notes with ranked search, DOCX/PDF export, mobile PWA, admin-managed teams and AI.",
   "scripts": {
     "build": "node scripts/build.mjs",
@@ -46,7 +46,6 @@
     "esbuild": "^0.24.0",
     "lowlight": "^3.1.0",
     "lucide": "^0.460.0",
-    "markdown-it": "^14.1.0",
     "markdown-it-mark": "^4.0.0",
     "prosemirror-markdown": "^1.13.0",
     "tiptap-markdown": "^0.8.10",
@@ -57,11 +56,12 @@
     "docx": "^9.16.0",
     "electron-updater": "^6.3.9",
     "image-size": "^2.1.0",
+    "markdown-it": "^14.1.0",
     "pdfkit": "^0.21.0"
   },
-  "productName": "Local Notes",
+  "productName": "Local Notes Extended",
   "author": {
-    "name": "Local Notes",
+    "name": "Local Notes Extended",
     "email": "support@superfooduk.com"
   },
   "homepage": "https://harshid-lgtm.github.io/local-notes-extended/",
@@ -72,9 +72,9 @@
   "license": "MIT",
   "main": "electron/main.js",
   "build": {
-    "appId": "io.github.harshidlgtm.localnotes",
-    "productName": "Local Notes",
-    "copyright": "Copyright © 2026 Local Notes",
+    "appId": "io.github.harshidlgtm.localnotesextended",
+    "productName": "Local Notes Extended",
+    "copyright": "Copyright © 2026 Local Notes Extended",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -82,6 +82,7 @@
     "files": [
       "electron/**",
       "server/**",
+      "shared/**",
       "public/**",
       "package.json"
     ],
@@ -103,7 +104,7 @@
           ]
         }
       ],
-      "artifactName": "Local-Notes-Setup-${version}-${arch}.${ext}"
+      "artifactName": "Local-Notes-Extended-Setup-${version}-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -111,8 +112,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Local Notes",
-      "uninstallDisplayName": "Local Notes"
+      "shortcutName": "Local Notes Extended",
+      "uninstallDisplayName": "Local Notes Extended"
     },
     "mac": {
       "target": [
@@ -130,13 +131,13 @@
         }
       ],
       "category": "public.app-category.productivity",
-      "artifactName": "Local-Notes-${version}-mac.${ext}",
+      "artifactName": "Local-Notes-Extended-${version}-mac.${ext}",
       "hardenedRuntime": true,
       "darkModeSupport": true,
       "identity": "-"
     },
     "dmg": {
-      "title": "Local Notes ${version}",
+      "title": "Local Notes Extended ${version}",
       "contents": [
         {
           "x": 150,
@@ -171,9 +172,9 @@
         }
       ],
       "category": "Office",
-      "artifactName": "Local-Notes-${version}-${arch}.${ext}",
+      "artifactName": "Local-Notes-Extended-${version}-${arch}.${ext}",
       "synopsis": "Beautiful markdown notes",
-      "maintainer": "Local Notes <support@superfooduk.com>"
+      "maintainer": "Local Notes Extended <support@superfooduk.com>"
     }
   }
 }

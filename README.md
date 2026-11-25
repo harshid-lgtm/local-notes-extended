@@ -1,8 +1,8 @@
 <p align="center"><img src="build/icon.png" width="112" alt=""></p>
-<h1 align="center">Local Notes</h1>
+<h1 align="center">Local Notes Extended</h1>
 <p align="center">A calm, Notion-style editor for plain markdown files — with wikilinks, backlinks, a graph view and templates.<br>Works with your Obsidian vault. Free for Windows, macOS and Linux.</p>
 
-![Local Notes](site/img/hero-light.png)
+![Local Notes Extended](site/img/hero-light.png)
 
 📖 **[Read the documentation](docs/README.md)** · 🌐 **[Website](https://harshid-lgtm.github.io/local-notes-extended/)**
 
@@ -12,9 +12,9 @@ Get the latest installer from **[Releases](https://github.com/harshid-lgtm/local
 
 | Platform | File |
 | --- | --- |
-| Windows 10/11 | `Local-Notes-Setup-<version>-x64.exe` (or `-arm64.exe`) |
-| macOS 11+ | `Local-Notes-<version>-mac.dmg` (Apple Silicon + Intel) |
-| Linux | `.AppImage` (any distro) or `.deb` (Ubuntu/Debian) |
+| Windows 10/11 | `Local-Notes-Extended-Setup-<version>-x64.exe` (or `-arm64.exe`) |
+| macOS 11+ | `Local-Notes-Extended-<version>-mac.dmg` (Apple Silicon + Intel) |
+| Linux | `Local-Notes-Extended-<version>-x86_64.AppImage` or `.deb` (Ubuntu/Debian) |
 | Android / iOS | Installable PWA from your team server — [details](mobile/README.md) |
 
 Installed apps update themselves when a new release is published.
@@ -81,7 +81,7 @@ git push --follow-tags     # GitHub Actions builds Windows, macOS and Linux inst
 
 ## Teams
 
-Run the **[Local Notes team server](team-server/README.md)** (one Docker command with automatic HTTPS) and your team gets:
+Run the **[Local Notes Extended team server](team-server/README.md)** (one Docker command with automatic HTTPS) and your team gets:
 
 - **Shared workspaces** with owner / admin / editor / viewer roles and invite links, plus a **private space** for every person
 - **Workspace admins** who can add members and grant or revoke admin rights; only owners can change ownership
@@ -90,9 +90,9 @@ Run the **[Local Notes team server](team-server/README.md)** (one Docker command
 - **Comments** on any text, threads, resolve, and **@mentions**
 - **Version history** with named versions and one-click restore
 - An **inbox** for mentions and replies, live sidebar updates, team-wide search, backlinks and graph
-- A **markdown mirror** of every page on the server, in the same layout as a Local Notes / Obsidian vault
+- A **markdown mirror** of every page on the server, in the same layout as a Local Notes Extended / Obsidian vault
 
-Teammates connect from the desktop app (*vault menu → Connect to a team server*) or just open the server's address in a browser.
+Teammates connect from the desktop app (*vault menu → Connect to a team server*) or just open the server's address in a browser. For a server on your LAN, enter the address with its port, for example `http://192.168.1.48:3000`; private IPs are treated as HTTP automatically.
 
 ![Team co-editing](site/img/team-collab.png)
 

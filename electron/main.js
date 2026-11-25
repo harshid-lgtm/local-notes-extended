@@ -9,9 +9,15 @@ const { createVaultServer } = require('../server/core');
 
 const IS_MAC = process.platform === 'darwin';
 const ROOT = path.join(__dirname, '..');
+const APP_NAME = 'Local Notes Extended';
 
-// lets tests and portable setups keep settings out of the normal profile
-if (process.env.LOCAL_NOTES_USER_DATA) app.setPath('userData', process.env.LOCAL_NOTES_USER_DATA);
+// Keep this build completely separate from the original Local Notes install:
+// different application name, profile directory, single-instance lock and AppUserModelID.
+app.setName(APP_NAME);
+if (process.platform === 'win32') app.setAppUserModelId('io.github.harshidlgtm.localnotesextended');
+const overrideUserData = process.env.LOCAL_NOTES_EXTENDED_USER_DATA || process.env.LOCAL_NOTES_USER_DATA;
+if (overrideUserData) app.setPath('userData', overrideUserData);
+else app.setPath('userData', path.join(app.getPath('appData'), APP_NAME));
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -47,7 +53,7 @@ function createWindow() {
     width: b.width, height: b.height, x: b.x, y: b.y,
     minWidth: 760, minHeight: 500,
     show: false,
-    title: 'Local Notes',
+    title: APP_NAME,
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#191918' : '#ffffff',
     titleBarStyle: IS_MAC ? 'hiddenInset' : 'hidden',
     trafficLightPosition: { x: 18, y: 16 },
@@ -100,7 +106,7 @@ function buildMenu() {
     { role: 'editMenu' },
     { label: 'View', submenu: [{ role: 'reload' }, { role: 'toggleDevTools' }, { type: 'separator' }, { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }, { type: 'separator' }, { role: 'togglefullscreen' }] },
     { role: 'windowMenu' },
-    { role: 'help', submenu: [{ label: 'Local Notes on GitHub', click: () => shell.openExternal('https://github.com/harshid-lgtm/local-notes') }] },
+    { role: 'help', submenu: [{ label: 'Local Notes Extended on GitHub', click: () => shell.openExternal('https://github.com/harshid-lgtm/local-notes-extended') }] },
   ]));
 }
 

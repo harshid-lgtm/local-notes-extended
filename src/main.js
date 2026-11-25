@@ -202,7 +202,7 @@ function showWelcome() {
     <div class="wl-wrap">
       <div class="wl-hero">
         <div class="wl-logo">${logo(56)}</div>
-        <h1>Local Notes</h1>
+        <h1>Local Notes Extended</h1>
         <p>Your markdown files, beautifully simple. Pick any folder and it becomes your vault — everything stays on your computer.</p>
         <div class="wl-buttons">
           <button class="btn primary large" id="wl-choose">${icon('folder-open', 18)}<span>Open a folder</span></button>
@@ -359,7 +359,7 @@ async function openVault(vault) {
   $('#vault-name').textContent = vault.name;
   $('#vault-tile').textContent = vault.name[0]?.toUpperCase() || '·';
   $('#vault-tile').style.setProperty('--hue', hue(vault.name));
-  document.title = `${vault.name} · Local Notes`;
+  document.title = `${vault.name} · Local Notes Extended`;
   api.templates().then((t) => { S.templateFolder = t.folder; }).catch(() => {});
   await refreshTree();
   const fromHash = decodeURIComponent(location.hash.slice(2));
@@ -734,7 +734,7 @@ async function closeVault() {
   S.boot = await api.state();
   S.vault = null;
   history.replaceState(null, '', '#');
-  document.title = 'Local Notes';
+  document.title = 'Local Notes Extended';
   showWelcome();
 }
 
@@ -1517,7 +1517,7 @@ async function checkExternal() {
     await refreshTree();
     if (S.current && !S.current.dirty) {
       const st = await api.stat(S.current.path);
-      if (!st.exists) { toast('This page was moved or deleted outside Local Notes'); showHome(); return; }
+      if (!st.exists) { toast('This page was moved or deleted outside Local Notes Extended'); showHome(); return; }
       if (st.mtime > S.current.mtime + 0.001) {
         const scroll = $('#scroller').scrollTop;
         const sel = editor.state.selection;
@@ -1784,7 +1784,7 @@ function collectOfflinePages() {
 
 function showOfflineBoot(pages) {
   const root = h(`<div class="offline-boot">
-    <header><span class="offline-mark">${logo(30)}</span><div><strong>Local Notes</strong><span>Offline library</span></div></header>
+    <header><span class="offline-mark">${logo(30)}</span><div><strong>Local Notes Extended</strong><span>Offline library</span></div></header>
     <h1>Your recent pages, without a connection.</h1>
     <p>${pages.length} page${pages.length === 1 ? '' : 's'} saved on this device. Open one to read the last synced copy.</p>
     <label class="offline-search">${icon('search', 17)}<input placeholder="Search saved pages…" spellcheck="false"><kbd>esc</kbd></label>
@@ -1822,7 +1822,7 @@ function showOfflineBoot(pages) {
 async function boot() {
   if (window.desktop) {
     document.body.classList.add('desktop', `os-${window.desktop.platform}`);
-    window.desktop.onUpdateReady(({ version }) => toast(`Local Notes ${version} is ready`, {
+    window.desktop.onUpdateReady(({ version }) => toast(`Local Notes Extended ${version} is ready`, {
       kind: 'update', timeout: 0, action: { label: 'Restart to update', run: () => window.desktop.installUpdate() },
     }));
   }
@@ -1858,7 +1858,7 @@ async function boot() {
       showOfflineBoot(offline);
       return;
     }
-    document.body.innerHTML = '<div class="fatal">Can’t reach the Local Notes server. Is it running?</div>';
+    document.body.innerHTML = '<div class="fatal">Can’t reach the Local Notes Extended server. Is it running?</div>';
     return;
   }
   if (S.boot.vault) await openVault(S.boot.vault);

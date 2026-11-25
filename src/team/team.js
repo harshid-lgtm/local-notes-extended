@@ -1,4 +1,4 @@
-// Team mode: shared workspaces on a Local Notes team server, with a private space per
+// Team mode: shared workspaces on a Local Notes Extended team server, with a private space per
 // person, live co-editing, comments with @mentions, version history and an inbox.
 import * as Y from 'yjs';
 import { HocuspocusProvider } from '@hocuspocus/provider';
@@ -17,6 +17,14 @@ const md = new MarkdownIt({ html: false, linkify: true, breaks: true });
 const initials = (name) => (name || '?').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 const avatar = (u, size = 24) => `<span class="avatar" style="--c:${esc(u?.color || '#999')};--s:${size}px" title="${esc(u?.name || '')}">${esc(initials(u?.name))}</span>`;
 const ROLE_LABEL = { owner: 'Owner', admin: 'Admin', editor: 'Can edit', viewer: 'Can view' };
+const versionAtLeast = (version, minimum) => {
+  const a = String(version || '').split('.').map((n) => parseInt(n, 10) || 0);
+  const b = String(minimum || '').split('.').map((n) => parseInt(n, 10) || 0);
+  for (let i = 0; i < Math.max(a.length, b.length); i += 1) {
+    if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) > (b[i] || 0);
+  }
+  return true;
+};
 
 // ================================================================== sign in
 export async function showTeamSignIn({ hosted = false, url = '', invite = null, onBack = null } = {}) {
@@ -36,7 +44,7 @@ export async function showTeamSignIn({ hosted = false, url = '', invite = null, 
         try { info.invite = await teamClient({ url: base }).get(`/api/invites/${invite}`); mode = 'signup'; } catch (e) { info.inviteError = e.message; }
       }
     } catch (e) {
-      info = { error: hosted ? e.message : 'Can’t reach a Local Notes team server at that address.' };
+      info = { error: hosted ? e.message : 'Can’t reach a Local Notes Extended team server at that address.' };
     }
     render();
   }
@@ -49,7 +57,7 @@ export async function showTeamSignIn({ hosted = false, url = '', invite = null, 
     const title = first ? 'Set up your team' : mode === 'signup' ? 'Create your account' : 'Welcome back';
     const sub = first ? 'You’re the first person here — your account will be the admin.'
       : info?.invite ? `${esc(info.invite.invitedBy || 'A teammate')} invited you to <b>${esc(info.invite.workspace)}</b>.`
-        : info?.name ? `Sign in to <b>${esc(info.name)}</b> on Local Notes.` : 'Connect to your team’s Local Notes server.';
+        : info?.name ? `Sign in to <b>${esc(info.name)}</b> on Local Notes Extended.` : 'Connect to your team’s Local Notes Extended server.';
     root.innerHTML = `
       <div class="wl-bg" aria-hidden="true"><div class="wl-glow"></div><div class="wl-grid"></div></div>
       <div class="auth">
@@ -60,7 +68,7 @@ export async function showTeamSignIn({ hosted = false, url = '', invite = null, 
           <p class="auth-sub">${sub}</p>
           ${info?.inviteError ? `<div class="auth-error">${esc(info.inviteError)}</div>` : ''}
           <form class="auth-form" novalidate>
-            ${hosted ? '' : `<label class="field"><span>Server address</span><input name="server" placeholder="notes.yourcompany.com" value="${esc(url)}" spellcheck="false" autocomplete="url"></label>`}
+            ${hosted ? '' : `<label class="field"><span>Server address</span><input name="server" placeholder="notes.yourcompany.com or 192.168.1.48:3000" value="${esc(url)}" spellcheck="false" autocomplete="url"></label>`}
             ${info?.error ? `<div class="auth-error">${esc(info.error)}</div>` : ''}
             ${mode === 'signup' ? '<label class="field"><span>Your name</span><input name="name" autocomplete="name" placeholder="Maya Chen"></label>' : ''}
             <label class="field"><span>Email</span><input name="email" type="email" autocomplete="email" placeholder="you@company.com"></label>
@@ -122,9 +130,13 @@ export async function startTeam(conn, { hosted = false, onExit = null } = {}) {
     if (!hosted) toast(e.message, { kind: 'error' });
     return showTeamSignIn({ hosted, url: conn.url, onBack: onExit });
   }
+  let serverInfo = {};
+  try { serverInfo = await api.get('/api/team/info'); } catch { serverInfo = {}; }
   const root = mountRoot();
   T = {
     conn, api, hosted, onExit, root,
+    serverVersion: serverInfo.version || '',
+    supportsAdmin: versionAtLeast(serverInfo.version, '1.4.0'),
     me: me.user, workspaces: me.workspaces, unread: me.unread,
     pages: new Map(), roles: new Map(), people: new Map(),
     expanded: new Set(store.get(`ln:team:${conn.url}:expanded`, [])),
@@ -755,7 +767,9 @@ async function shareDialog(wsId) {
   }
   const owner = ws.role === 'owner';
   const manager = canManage(wsId);
-  const assignableRoles = owner ? ['owner', 'admin', 'editor', 'viewer'] : ['admin', 'editor', 'viewer'];
+  const assignableRoles = owner
+    ? (T.supportsAdmin ? ['owner', 'admin', 'editor', 'viewer'] : ['owner', 'editor', 'viewer'])
+    : (T.supportsAdmin ? ['admin', 'editor', 'viewer'] : ['editor', 'viewer']);
   const box = h(`<div class="share">
     <div class="share-head"><div><h2>Share “${esc(ws.name)}”</h2><p>Members can see every page here except ones set to “Only people invited”. To share a single page, use Share on that page.</p></div>
       <button class="icon-btn" data-close>${icon('x', 18)}</button></div>
@@ -1374,6 +1388,34 @@ function wireTitle() {
   t.addEventListener('paste', (e) => { e.preventDefault(); document.execCommand('insertText', false, e.clipboardData.getData('text/plain').replace(/\n+/g, ' ')); });
 }
 
+function localTeamExport(c, format) {
+  const markdown = getMarkdown(c.editor);
+  const base = String(c.page.title || 'Untitled').replace(/[\\/:*?"<>|]/g, ' ').trim() || 'Untitled';
+  let body;
+  let mime;
+  if (format === 'md') {
+    body = markdown;
+    mime = 'text/markdown;charset=utf-8';
+  } else if (format === 'txt') {
+    body = markdown
+      .replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '')
+      .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      .replace(/[#>*_`~]/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    mime = 'text/plain;charset=utf-8';
+  } else if (format === 'html') {
+    body = `<!doctype html><meta charset="utf-8"><title>${esc(c.page.title || 'Untitled')}</title><style>body{max-width:760px;margin:48px auto;padding:0 24px;font:16px/1.7 system-ui,sans-serif;color:#24251f}img{max-width:100%}</style><article>${md.render(markdown)}</article>`;
+    mime = 'text/html;charset=utf-8';
+  } else {
+    return false;
+  }
+  downloadBlob(new Blob([body], { type: mime }), `${base}.${format}`);
+  toast('Exported from this device — this team server does not have the export endpoint yet', { kind: 'success', timeout: 4200 });
+  return true;
+}
+
 function exportTeamPage(format) {
   const c = T.current;
   if (!c) return;
@@ -1384,7 +1426,11 @@ function exportTeamPage(format) {
       downloadBlob(blob, filename);
       toast(`Exported ${filename}`, { kind: 'success' });
     })
-    .catch((e) => toast(`Couldn’t export: ${e.message}`, { kind: 'error' }));
+    .catch((e) => {
+      if ((e.status === 404 || e.status === 405 || e.status === 501) && localTeamExport(c, format)) return;
+      const hint = e.status === 404 ? ' This team server may need updating for Word and PDF export.' : '';
+      toast(`Couldn’t export: ${e.message}${hint}`, { kind: 'error' });
+    });
 }
 
 function teamExportMenu(anchor) {
@@ -1835,8 +1881,17 @@ function openSearch() {
         const r = await T.api.get(`/api/search?q=${encodeURIComponent(q)}`);
         if (my === seq) render(q, (r.results || []).map((x) => ({ ...x, ws: wsById(x.workspaceId) || { name: 'Shared', kind: 'shared' } })));
       } catch {
-        // Offline: search the pages whose content is already cached on this device.
-        if (my === seq) render(q, offlineSearch(q));
+        // Older team servers do not have the cross-workspace index. Fall back to
+        // their per-workspace search before giving up on the cached offline set.
+        try {
+          const res = await Promise.all(T.workspaces.map((w) => T.api.get(`/api/workspaces/${w.id}/search?q=${encodeURIComponent(q)}`)
+            .then((r) => r.results.map((x) => ({ ...x, ws: w })))
+            .catch(() => [])));
+          if (my === seq) render(q, res.flat());
+        } catch {
+          // Offline: search the pages whose content is already cached on this device.
+          if (my === seq) render(q, offlineSearch(q));
+        }
       }
     }, 180);
   });
