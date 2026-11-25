@@ -1470,6 +1470,37 @@ const copy = (text, msg) => copyText(text).then((ok) => toast(ok ? msg : 'Couldn
 const copyLink = (id) => copy(`${T.api.base}/#/p/${id}`, 'Link copied');
 
 // ================================================================== bubble menu (format + comment)
+function openTeamLinkDialog(editor) {
+  const current = editor.getAttributes('link').href || '';
+  const box = h(`<div class="cv link-dialog">
+    <h3>${current ? 'Edit link' : 'Add link'}</h3>
+    <label class="field"><span>Link address or page name</span><input value="${esc(current)}" placeholder="https://example.com or Page name" spellcheck="false"></label>
+    <div class="confirm-actions">
+      ${current ? '<button class="btn ghost danger-text" data-remove>Remove link</button>' : ''}
+      <button class="btn ghost" data-cancel>Cancel</button><button class="btn primary" data-save>Save</button>
+    </div></div>`);
+  const m = openModal(box, { className: 'small' });
+  const input = $('input', box);
+  setTimeout(() => { input.focus(); input.select(); }, 30);
+  const apply = (href) => {
+    const chain = editor.chain().focus().extendMarkRange('link');
+    if (!href) chain.unsetLink().run();
+    else chain.setLink({ href }).run();
+    m.close();
+  };
+  $('[data-cancel]', box).onclick = () => m.close();
+  $('[data-remove]', box)?.addEventListener('click', () => apply(''));
+  $('[data-save]', box).onclick = () => {
+    let href = input.value.trim();
+    if (href && !/^[a-z][a-z0-9+.-]*:/i.test(href) && /^[\w-]+(\.[\w-]+)+(\/|$)/.test(href)) href = `https://${href}`;
+    apply(href);
+  };
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); $('[data-save]', box).click(); }
+    if (e.key === 'Escape') m.close();
+  });
+}
+
 function buildBubble(c) {
   const el = h(`<div class="bubble pop">
     <button data-cmd="ai" class="bb-ai" title="Ask AI (${modKey}+J)">${icon('sparkles', 15)}<span class="bb-text">Ask AI</span></button>
@@ -1484,17 +1515,11 @@ function buildBubble(c) {
   el.addEventListener('click', (e) => {
     const b = e.target.closest('[data-cmd]');
     if (!b) return;
-    const ch = c.editor.chain().focus();
     if (runFormat(c.editor, b.dataset.cmd, b)) { syncBubble(c); return; }
     switch (b.dataset.cmd) {
       case 'comment': startComment(); break;
       case 'ai': openAIMenu(c.editor, b); break;
-      case 'link': {
-        const href = prompt('Link address', c.editor.getAttributes('link').href || 'https://');
-        if (href === null) break;
-        if (!href.trim()) ch.extendMarkRange('link').unsetLink().run(); else ch.extendMarkRange('link').setLink({ href: href.trim() }).run();
-        break;
-      }
+      case 'link': openTeamLinkDialog(c.editor); break;
       default:
     }
     syncBubble(c);

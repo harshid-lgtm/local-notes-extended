@@ -1056,6 +1056,41 @@ function pageMenu(anchor) {
 }
 
 // ================================================================== bubble menu & block handle
+function openLinkDialog() {
+  const current = editor.getAttributes('link').href || '';
+  const box = h(`<div class="cv link-dialog">
+    <h3>${current ? 'Edit link' : 'Add link'}</h3>
+    <label class="field"><span>Link address or page name</span><input value="${esc(current)}" placeholder="https://example.com or Page name" spellcheck="false"></label>
+    <div class="confirm-actions">
+      ${current ? '<button class="btn ghost danger-text" data-remove>Remove link</button>' : ''}
+      <button class="btn ghost" data-cancel>Cancel</button><button class="btn primary" data-save>Save</button>
+    </div></div>`);
+  const m = openModal(box, { className: 'small' });
+  const input = $('input', box);
+  setTimeout(() => { input.focus(); input.select(); }, 30);
+  const apply = (href) => {
+    const chain = editor.chain().focus().extendMarkRange('link');
+    if (!href) chain.unsetLink().run();
+    else chain.setLink({ href }).run();
+    m.close();
+  };
+  $('[data-cancel]', box).onclick = () => m.close();
+  $('[data-remove]', box)?.addEventListener('click', () => apply(''));
+  $('[data-save]', box).onclick = () => {
+    let href = input.value.trim();
+    if (href && !/^[a-z][a-z0-9+.-]*:/i.test(href) && /^[\w-]+(\.[\w-]+)+(\/|$)/.test(href)) href = `https://${href}`;
+    else if (href && !/^[a-z][a-z0-9+.-]*:/i.test(href) && !href.startsWith('#')) {
+      const page = resolveNote(href);
+      if (page) href = encodeURI(page);
+    }
+    apply(href);
+  };
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); $('[data-save]', box).click(); }
+    if (e.key === 'Escape') m.close();
+  });
+}
+
 function buildBubble() {
   const el = h(`<div class="bubble pop">
     <button class="bb-ai" data-cmd="ai" title="Ask AI (${modKey}+J)">${icon('sparkles', 15)}<span class="bb-text">Ask AI</span></button>
@@ -1081,7 +1116,7 @@ function buildBubble() {
     const c = editor.chain().focus();
     if (runFormat(editor, b.dataset.cmd, b)) { syncBubble(); return; }
     switch (b.dataset.cmd) {
-      case 'link': showLink(true); break;
+      case 'link': openLinkDialog(); break;
       case 'unlink': c.extendMarkRange('link').unsetLink().run(); showLink(false); break;
       case 'turn': turnIntoMenu(b); break;
       case 'ai': openAIMenu(editor, b); break;
