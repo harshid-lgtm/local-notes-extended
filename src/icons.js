@@ -34,22 +34,24 @@ export function icon(name, size = 16, stroke = 1.75) {
   return `<svg class="i" xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${children}</svg>`;
 }
 
-// The Local Notes mark: a page with a folded corner resting on a soft tile.
+// The Extended mark: a stacked page pair on a forest tile with an E badge.
 export function logo(size = 28) {
   return `<svg class="logo" width="${size}" height="${size}" viewBox="0 0 32 32" aria-hidden="true">
     <defs>
       <linearGradient id="lg-tile" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#3a3935"/><stop offset="1" stop-color="#151513"/>
-      </linearGradient>
-      <linearGradient id="lg-page" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#ecebe7"/>
+        <stop offset="0" stop-color="#2e6452"/><stop offset="1" stop-color="#0c221d"/>
       </linearGradient>
     </defs>
     <rect width="32" height="32" rx="8" fill="url(#lg-tile)"/>
-    <path d="M10 7.5h8.6l4.9 4.9V23a1.5 1.5 0 0 1-1.5 1.5H10A1.5 1.5 0 0 1 8.5 23V9A1.5 1.5 0 0 1 10 7.5z" fill="url(#lg-page)"/>
-    <path d="M18.6 7.5v3.4c0 .8.7 1.5 1.5 1.5h3.4" fill="#cfcdc6"/>
-    <rect x="11.5" y="15" width="9" height="1.6" rx=".8" fill="#2b2a27" opacity=".85"/>
-    <rect x="11.5" y="18.4" width="6.4" height="1.6" rx=".8" fill="#2b2a27" opacity=".4"/>
-    <circle cx="21.6" cy="21.4" r="2.6" fill="#e8835a"/>
+    <g transform="rotate(-7 15 17)">
+      <rect x="8.4" y="8.8" width="12.2" height="16.2" rx="1.4" fill="#dcd6c6"/>
+    </g>
+    <path d="M13.2 8.2h9.2l3.4 3.4V24a1.4 1.4 0 0 1-1.4 1.4h-11.2A1.4 1.4 0 0 1 11.8 24V9.6a1.4 1.4 0 0 1 1.4-1.4z" fill="#fff"/>
+    <path d="M22.4 8.2v2.4c0 .6.5 1 1 1h2.4" fill="#cfcbc0"/>
+    <rect x="14.5" y="14.2" width="6.6" height="1.5" rx=".75" fill="#2b2a27" opacity=".85"/>
+    <rect x="14.5" y="17.4" width="5" height="1.5" rx=".75" fill="#2b2a27" opacity=".45"/>
+    <rect x="14.5" y="20.6" width="4" height="1.5" rx=".75" fill="#2b2a27" opacity=".3"/>
+    <circle cx="24.2" cy="24.1" r="4.5" fill="#e8835a" stroke="#fff" stroke-width=".9"/>
+    <text x="24.2" y="26.7" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="6.8" font-weight="700" fill="#fff">E</text>
   </svg>`;
 }

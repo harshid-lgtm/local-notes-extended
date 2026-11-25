@@ -63,7 +63,7 @@ function createWindow() {
     titleBarStyle: IS_MAC ? 'hiddenInset' : 'hidden',
     trafficLightPosition: { x: 18, y: 16 },
     titleBarOverlay: IS_MAC ? undefined : overlayColors(nativeTheme.shouldUseDarkColors),
-    icon: path.join(ROOT, 'build', 'icon.png'),
+    icon: path.join(ROOT, 'public', 'icon-512.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
