@@ -1,0 +1,20 @@
+{
+  "name": "local-notes-team-server",
+  "version": "1.4.0",
+  "private": true,
+  "description": "Self-hosted team server for Local Notes: accounts, shared workspaces, live co-editing, history and comments.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
+    "@hocuspocus/server": "^4.9.0",
+    "yjs": "^13.6.33"
+  },
+  "type": "module"
+}

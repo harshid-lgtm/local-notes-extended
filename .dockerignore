@@ -1,0 +1,7 @@
+node_modules
+dist
+.git
+team-server/node_modules
+team-server/data
+site
+build

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Local Notes</title>
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#24251f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Local Notes">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/icon-180.png">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/app.css">
+  <script>
+    // Apply the saved theme before first paint to avoid a flash.
+    try {
+      var p = JSON.parse(localStorage.getItem('ln:prefs') || '{}');
+      var t = p.theme && p.theme !== 'system' ? p.theme : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <div id="welcome" class="welcome" hidden></div>
+  <div id="shell" class="shell" hidden></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

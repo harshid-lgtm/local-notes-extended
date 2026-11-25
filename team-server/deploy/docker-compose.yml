@@ -1,0 +1,36 @@
+# Local Notes team server with automatic HTTPS (Caddy + Let's Encrypt).
+#
+#   1. Point a DNS record (e.g. notes.yourcompany.com) at this machine.
+#   2. cp .env.example .env   and fill it in.
+#   3. docker compose up -d
+#
+services:
+  notes:
+    image: ghcr.io/harshid-lgtm/local-notes-team:latest
+    restart: unless-stopped
+    environment:
+      TEAM_NAME: ${TEAM_NAME:-Team}
+      SIGNUP: ${SIGNUP:-invite}
+    volumes:
+      - notes-data:/data
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - notes
+
+volumes:
+  notes-data:
+  caddy-data:
+  caddy-config:

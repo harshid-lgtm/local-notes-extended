@@ -1,0 +1,6 @@
+node_modules/
+dist/
+__pycache__/
+*.log
+team-server/data/
+site/docs/
