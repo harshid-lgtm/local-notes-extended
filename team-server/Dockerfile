@@ -14,6 +14,9 @@ RUN npm run build
 # 2) the server
 FROM node:24-alpine
 ENV NODE_ENV=production PORT=3000 HOST=0.0.0.0 DATA_DIR=/data PUBLIC_DIR=/app/public
+# server/export.js is CommonJS and is required from /app/server. Point its
+# module lookup at the team server's dependency tree.
+ENV NODE_PATH=/app/team-server/node_modules
 WORKDIR /app/team-server
 COPY team-server/package.json team-server/package-lock.json ./
 RUN npm ci --omit=dev --no-audit --no-fund
@@ -22,6 +25,9 @@ COPY server/ai.js /app/server/ai.js
 COPY server/export.js /app/server/export.js
 COPY shared /app/shared
 COPY --from=ui /src/public /app/public
+# Fail the image build, rather than a restart loop, if the shared export module
+# cannot see its dependencies.
+RUN node -e "require('../server/export.js')"
 RUN mkdir -p /data && chown node:node /data
 USER node
 VOLUME /data
