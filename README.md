@@ -23,7 +23,8 @@ Installed apps update themselves when a new release is published.
 
 ## Features
 
-- **Invisible markdown** — headings, checklists, tables, callouts, code and images render as you type. Files stay clean markdown.
+- **Invisible markdown** — headings, checklists, tables, callouts, code, images and inline text styles render as you type. Files stay clean markdown.
+- **Text size and colour** — select text, then use **Aa** for Small/Normal/Large/Huge or **A** for a text colour. Sizes and colours are saved as inline CSS in the markdown.
 - **Slash commands, drag handles and a formatting toolbar**, Notion-style.
 - **Wikilinks & backlinks** — type `[[` to link; every page lists what links to it, plus unlinked mentions.
 - **Graph view** — an interactive map of your vault, coloured by folder, with a local graph per page.

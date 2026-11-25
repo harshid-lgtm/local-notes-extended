@@ -1466,3 +1466,17 @@ body.ai-chat-open .outline { display: none; }
   .team-shell .mobile-search { width: 36px; height: 36px; }
   .team-shell .sb-expand { width: 36px; height: 36px; }
 }
+
+/* Inline text size and colour controls */
+.bb-size, .bb-color { min-width: 30px; padding: 0 4px; position: relative; }
+.bb-size span { font-size: 12px; font-weight: 700; letter-spacing: -0.04em; }
+.bb-color span { font-size: 14px; font-weight: 700; line-height: 1; }
+.bb-color-dot { position: absolute; left: 50%; bottom: 3px; width: 10px; height: 3px; border-radius: 3px; transform: translateX(-50%); background: transparent; }
+.color-grid { grid-template-columns: repeat(4, 28px); }
+.color-menu .hl-grid { padding: 2px 4px 6px; }
+@media (max-width: 640px) {
+  .bb-size, .bb-color { min-width: 28px; }
+}
+@media (max-width: 640px) {
+  .bubble { height: auto; min-height: 38px; flex-wrap: wrap; justify-content: center; }
+}

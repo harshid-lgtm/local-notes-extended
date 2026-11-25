@@ -3,6 +3,7 @@
 import { Editor, Extension, Node, mergeAttributes } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Text from '@tiptap/extension-text';
+import TextStyle from '@tiptap/extension-text-style';
 import HardBreak from '@tiptap/extension-hard-break';
 import Italic from '@tiptap/extension-italic';
 import { MarkdownSerializerState } from 'prosemirror-markdown';
@@ -293,18 +294,42 @@ const WikiEmbed = Node.create({
 // bits of HTML Obsidian understands: <u>text</u> and <mark style="background: #hex;">text</mark>
 // (the format of Obsidian's Highlightr plugin). Plain yellow stays ==text==.
 const SAFE_COLOR = /^(#[0-9a-f]{3,8}|rgba?\([\d\s.,%]+\)|[a-z]+)$/i;
+const SAFE_SIZE = /^\d+(?:\.\d+)?(?:px|pt|em|rem|%)$/i;
+function safeInlineStyle(style) {
+  return String(style || '')
+    .split(';')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const i = part.indexOf(':');
+      if (i < 0) return null;
+      const prop = part.slice(0, i).trim().toLowerCase();
+      const value = part.slice(i + 1).trim();
+      if (prop === 'font-size' && SAFE_SIZE.test(value)) return `font-size:${value}`;
+      if (prop === 'color' && SAFE_COLOR.test(value)) return `color:${value}`;
+      return null;
+    })
+    .filter(Boolean)
+    .join(';');
+}
 function htmlMarksMarkdownIt(md) {
   if (md.__lnHtmlMarks) return;
   md.__lnHtmlMarks = true;
   md.inline.ruler.after('html_inline', 'ln_html_marks', (state, silent) => {
     if (state.src.charCodeAt(state.pos) !== 0x3c /* < */) return false;
-    const m = /^<(\/?u|\/mark|mark(?:\s+(?:style="background(?:-color)?:\s*([^";]+?);?\s*"|data-color="([^"]+)"))?)>/i.exec(state.src.slice(state.pos));
+    const m = /^<(\/?u|\/mark|mark(?:\s+(?:style="background(?:-color)?:\s*([^";]+?);?\s*"|data-color="([^"]+)"))?|\/?span(?:\s+style="([^"]*)")?)>/i.exec(state.src.slice(state.pos));
     if (!m) return false;
     if (!silent) {
       const t = state.push('html_inline', '', 0);
       const tag = m[1].toLowerCase();
       const color = (m[2] || m[3] || '').trim();
-      t.content = tag.startsWith('mark') ? (SAFE_COLOR.test(color) ? `<mark data-color="${color}">` : '<mark>') : `<${tag}>`;
+      if (tag.startsWith('/span')) t.content = '</span>';
+      else if (tag.startsWith('span')) {
+        const style = safeInlineStyle(m[4]);
+        t.content = style ? `<span style="${style}">` : '<span>';
+      } else if (tag.startsWith('mark')) {
+        t.content = SAFE_COLOR.test(color) ? `<mark data-color="${color}">` : '<mark>';
+      } else t.content = `<${tag}>`;
     }
     state.pos += m[0].length;
     return true;
@@ -335,6 +360,69 @@ const MarkdownUnderline = Underline.extend({
     return {
       markdown: {
         serialize: { open: '<u>', close: '</u>', mixable: true, expelEnclosingWhitespace: true },
+        parse: { setup: htmlMarksMarkdownIt },
+      },
+    };
+  },
+});
+
+// Per-selection font size and text colour. Stored as a span with inline CSS so
+// the formatting survives as ordinary markdown without adding proprietary syntax.
+const TextFormat = TextStyle.extend({
+  priority: 120,
+  addAttributes() {
+    return {
+      fontSize: {
+        default: null,
+        parseHTML: (element) => element.style.fontSize || null,
+        // Carry the value through Tiptap's attribute renderer; renderHTML below
+        // turns it into the span's inline CSS.
+        renderHTML: (attributes) => (attributes.fontSize ? { 'data-font-size': attributes.fontSize } : {}),
+      },
+      color: {
+        default: null,
+        parseHTML: (element) => element.style.color || null,
+        renderHTML: (attributes) => (attributes.color ? { 'data-color': attributes.color } : {}),
+      },
+    };
+  },
+  parseHTML() {
+    return [{
+      tag: 'span',
+      getAttrs: (element) => {
+        if (!element.style.fontSize && !element.style.color) return false;
+        return {};
+      },
+    }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    const attrs = { ...HTMLAttributes };
+    const fontSize = attrs['data-font-size'] || attrs.fontSize;
+    const color = attrs['data-color'] || attrs.color;
+    const style = [];
+    if (fontSize) style.push(`font-size:${fontSize}`);
+    if (color) style.push(`color:${color}`);
+    delete attrs['data-font-size'];
+    delete attrs['data-color'];
+    delete attrs.fontSize;
+    delete attrs.color;
+    if (style.length) attrs.style = style.join(';');
+    return ['span', mergeAttributes(this.options.HTMLAttributes, attrs), 0];
+  },
+  addStorage() {
+    return {
+      markdown: {
+        serialize: {
+          open: (_state, mark) => {
+            const style = [];
+            if (mark.attrs.fontSize) style.push(`font-size:${mark.attrs.fontSize}`);
+            if (mark.attrs.color) style.push(`color:${mark.attrs.color}`);
+            return style.length ? `<span style="${style.join(';')}">` : '';
+          },
+          close: (_state, mark) => (mark.attrs.fontSize || mark.attrs.color) ? '</span>' : '',
+          mixable: true,
+          expelEnclosingWhitespace: true,
+        },
         parse: { setup: htmlMarksMarkdownIt },
       },
     };
@@ -644,7 +732,7 @@ export function createEditor({ element, bubble, onUpdate, collab = null, editabl
       Table.configure({ resizable: false }),
       TableRow, TableHeader, TableCell,
       CodeBlock,
-      MarkdownHighlight, MarkdownUnderline,
+      MarkdownHighlight, MarkdownUnderline, TextFormat,
       WikiLink, WikiEmbed,
       Decorations,
       SlashCommand, WikiSuggest, Shortcuts,
