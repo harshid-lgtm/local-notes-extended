@@ -6,6 +6,12 @@ Type `[[` and start typing a page name to link to it. Links look like `[[Page na
 
 Regular markdown links (`[text](Other%20page.md)`) and web links work too.
 
+## Web links
+
+Bare `http://` and `https://` URLs become links automatically when a note opens, or when you type or paste them. For example, `https://youtu.be/AZgzmX24-HY` becomes a clickable link without any extra step.
+
+Select text and use **Link** to add, edit or remove a link with a label. URLs inside code blocks stay as plain text.
+
 ## Backlinks
 
 At the bottom of every page:

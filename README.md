@@ -4,7 +4,7 @@
 
 ![Local Notes Extended](site/img/hero-light.png)
 
-📖 **[Read the documentation](docs/README.md)** · 🌐 **[Website](https://harshid-lgtm.github.io/local-notes-extended/)**
+📖 **[Read the documentation](docs/README.md)** · 🌐 **[Website](https://harshid-lgtm.github.io/local-notes-extended/)** · 📝 **[Changelog](CHANGELOG.md)**
 
 ## Download
 
@@ -25,6 +25,7 @@ Installed apps update themselves when a new release is published.
 
 - **Invisible markdown** — headings, checklists, tables, callouts, code, images and inline text styles render as you type. Files stay clean markdown.
 - **Text size and colour** — select text, then use **Aa** for Small/Normal/Large/Huge or **A** for a text colour. Sizes and colours are saved as inline CSS in the markdown.
+- **Automatic links** — bare `http://` and `https://` URLs become links when a note opens, or when you type or paste them. The **Link** dialog edits or removes them.
 - **Slash commands, drag handles and a formatting toolbar**, Notion-style.
 - **Wikilinks & backlinks** — type `[[` to link; every page lists what links to it, plus unlinked mentions.
 - **Graph view** — an interactive map of your vault, coloured by folder, with a local graph per page.

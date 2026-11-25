@@ -1,6 +1,6 @@
 # Writing
 
-Local Notes hides markdown syntax while you write and saves clean markdown underneath.
+Local Notes Extended hides markdown syntax while you write and saves clean markdown underneath.
 
 ## The slash menu
 
@@ -24,11 +24,37 @@ Shortcuts work as you type: `# ` for a heading, `- ` for a bullet, `1. ` for a n
 
 ## Formatting toolbar
 
-Select text to see the toolbar: **Ask AI**, turn the block into another type, bold, italic, strikethrough, code, highlight and link. Paste a URL to make a link, or type a page name to link to that page.
+Select text to see the toolbar: **Ask AI**, turn the block into another type, bold, italic, strikethrough, code, **Aa** text size, **A** text colour, highlight and link.
+
+### Text size and colour
+
+Select text, then choose a size or colour from the floating toolbar.
+
+- **Aa** offers Small, Normal, Large and Huge.
+- **A** offers Default, Ink, Brick, Forest, Ocean, Violet and Amber.
+- **Normal** removes only the size; **Default** removes only the colour.
+
+The formatting is saved as a Markdown span with inline CSS:
+
+```html
+<span style="font-size:1.3em;color:#2563a8">large blue text</span>
+```
+
+The page-wide **Default / Serif / Mono** choice in the page menu is separate from these per-selection styles.
+
+## Links
+
+There are three ways to create a link:
+
+1. **Type or paste a bare URL** — for example `https://youtu.be/AZgzmX24-HY`. It becomes a link automatically.
+2. **Select text and use Link** — enter a URL or an existing page name in the dialog. The dialog also edits or removes an existing link.
+3. **Write Markdown directly** — `[label](https://example.com)`.
+
+URLs inside code blocks stay as plain text. Saved bare URLs use Markdown autolink form: `<https://example.com>`.
 
 ## Moving blocks
 
-Hover a block to see `+` and `⋮⋮` to its left. Click `+` to add a block below; drag `⋮⋮` to move the block.
+Hover a block to see `+` and `⠿` to its left. Click `+` to add a block below; drag `⠿` to move the block.
 
 ## Callouts
 
@@ -47,4 +73,4 @@ Images in your vault display inline — both `![alt](images/photo.png)` and Obsi
 
 ## Page style
 
-Open the `•••` page menu to choose **Default**, **Serif** or **Mono** fonts, **Small text** or **Full width**. These are view preferences and don't change your files.
+Open the `•••` page menu to choose **Default**, **Serif** or **Mono** fonts, **Small text** or **Full width**. These are view preferences and do not change your files.
