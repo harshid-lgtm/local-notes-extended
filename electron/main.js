@@ -31,6 +31,9 @@ if (!app.requestSingleInstanceLock()) {
 
 let win = null;
 let port = 0;
+let closeAllowed = false;
+let closeRequested = false;
+let closeTimer = null;
 const boundsFile = () => path.join(app.getPath('userData'), 'window.json');
 
 function loadBounds() {
@@ -48,6 +51,8 @@ function overlayColors(dark) {
 }
 
 function createWindow() {
+  closeAllowed = false;
+  closeRequested = false;
   const b = loadBounds();
   win = new BrowserWindow({
     width: b.width, height: b.height, x: b.x, y: b.y,
@@ -70,8 +75,24 @@ function createWindow() {
   if (b.maximized) win.maximize();
   win.loadURL(`http://localhost:${port}/`);
   win.once('ready-to-show', () => win.show());
-  win.on('close', saveBounds);
-  win.on('closed', () => { win = null; });
+  // Give the renderer a chance to flush its pending autosave before the window
+  // goes away. The timeout is a last resort for an unresponsive renderer.
+  win.on('close', (event) => {
+    saveBounds();
+    if (closeAllowed || win.webContents.isDestroyed()) return;
+    event.preventDefault();
+    if (closeRequested) return;
+    closeRequested = true;
+    win.webContents.send('app-close-request');
+    closeTimer = setTimeout(() => {
+      closeAllowed = true;
+      win?.close();
+    }, 6000);
+  });
+  win.on('closed', () => {
+    clearTimeout(closeTimer);
+    win = null;
+  });
 
   const own = (url) => url.startsWith(`http://localhost:${port}/`);
   // links open in the system browser; the app itself never navigates away
@@ -136,6 +157,11 @@ ipcMain.on('set-theme', (_e, { dark }) => {
   if (win) win.setBackgroundColor(dark ? '#191918' : '#ffffff');
 });
 ipcMain.on('reveal', (_e, p) => { if (typeof p === 'string' && fs.existsSync(p)) shell.showItemInFolder(p); });
+ipcMain.on('app-close-ready', () => {
+  closeAllowed = true;
+  clearTimeout(closeTimer);
+  if (win) win.close();
+});
 
 app.whenReady().then(async () => {
   const { server } = createVaultServer({ configDir: app.getPath('userData'), publicDir: path.join(ROOT, 'public') });

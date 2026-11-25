@@ -11,4 +11,6 @@ contextBridge.exposeInMainWorld('desktop', {
   reveal: (fullPath) => ipcRenderer.send('reveal', fullPath),
   onUpdateReady: (cb) => ipcRenderer.on('update-ready', (_e, info) => cb(info)),
   installUpdate: () => ipcRenderer.send('install-update'),
+  onCloseRequest: (cb) => ipcRenderer.on('app-close-request', () => cb()),
+  closeReady: () => ipcRenderer.send('app-close-ready'),
 });

@@ -799,6 +799,7 @@ function renderHome() {
 // ================================================================== page
 let saveTimer = null;
 let outlineTimer = null;
+let flushTitle = () => Promise.resolve();
 
 function setStatus(kind) {
   const el = $('#save-status');
@@ -936,6 +937,7 @@ function wireTitle() {
     inflight = (inflight || Promise.resolve()).then(doCommit).finally(() => { inflight = null; });
     return inflight;
   };
+  flushTitle = commit;
   const doCommit = async () => {
     if (!S.current) return;
     const raw = t.textContent.replace(/\s+/g, ' ').trim();
@@ -1830,6 +1832,18 @@ async function boot() {
   buildShell();
   installAIHooks();
   wireGlobalKeys();
+  if (window.desktop?.onCloseRequest) {
+    window.desktop.onCloseRequest(async () => {
+      try {
+        if (S.current) {
+          await flushTitle();
+          await flushSave();
+        }
+      } finally {
+        window.desktop.closeReady();
+      }
+    });
+  }
   let teamInfo = null;
   let teamReachError = false;
   try {
