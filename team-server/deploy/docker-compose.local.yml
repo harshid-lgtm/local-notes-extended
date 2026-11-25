@@ -1,0 +1,37 @@
+# Run the Local Notes Extended team server on a LAN, without Caddy or DNS.
+# From this directory:
+#   docker compose -f docker-compose.local.yml up -d --build
+#
+# Then open http://<server-ip>:3000. The first account becomes the admin.
+# Data (SQLite + markdown mirror) is kept in the notes-data volume.
+name: local-notes-extended
+
+services:
+  notes:
+    build:
+      context: ../..
+      dockerfile: team-server/Dockerfile
+    image: local-notes-extended-team:local
+    container_name: local-notes-extended
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:3000:3000"
+    environment:
+      TEAM_NAME: ${TEAM_NAME:-Local Notes Extended}
+      HOST: 0.0.0.0
+      PORT: 3000
+      DATA_DIR: /data
+      PUBLIC_DIR: /app/public
+      SIGNUP: ${SIGNUP:-invite}
+      MIRROR: ${MIRROR:-true}
+    volumes:
+      - notes-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/team/info"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  notes-data:

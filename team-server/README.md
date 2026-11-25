@@ -21,6 +21,21 @@ You need a small Linux server (1 GB RAM is plenty for a team) with Docker, and a
 
 Caddy fetches and renews the HTTPS certificate automatically.
 
+### Run on a LAN without a domain
+
+For a server such as `192.168.1.48`, use the local compose file. It builds the image from the repository, publishes port 3000 on all interfaces and keeps data in a named Docker volume:
+
+```bash
+git clone https://github.com/harshid-lgtm/local-notes-extended.git
+cd local-notes-extended/team-server/deploy
+docker compose -f docker-compose.local.yml up -d --build
+curl http://127.0.0.1:3000/api/team/info
+```
+
+Open `http://192.168.1.48:3000`. The first account becomes the server admin; after that, sign-up is invite-only by default. Set `SIGNUP=open` in the compose file if you want people to create accounts without an invite. If the host firewall is enabled, allow TCP 3000.
+
+The existing team server data is not touched by this compose project: it uses a separate `notes-data` volume.
+
 ### Updating
 
 ```bash
