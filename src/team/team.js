@@ -96,6 +96,7 @@ export async function showTeamSignIn({ hosted = false, url = '', invite = null, 
         const r = await api.post(mode === 'signup' ? '/api/auth/signup' : '/api/auth/login', { ...f, invite });
         const conn = { url: base, token: r.token, user: r.user };
         saveTeam(conn);
+        store.set('ln:lastTeam', base);
         if (invite && hosted) history.replaceState(null, '', '#');
         root.remove();
         await startTeam(conn, { hosted, onExit: onBack });
@@ -190,6 +191,7 @@ async function signOut(expired = false) {
   const { conn, hosted, onExit } = T;
   if (!expired) { try { await T.api.post('/api/auth/logout'); } catch { /* already gone */ } }
   forgetTeam(conn.url);
+  store.set('ln:lastTeam', null);
   stopTeam();
   if (expired) toast('Your session ended. Please sign in again.');
   showTeamSignIn({ hosted, url: conn.url, onBack: onExit });

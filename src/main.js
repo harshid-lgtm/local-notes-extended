@@ -1771,12 +1771,15 @@ async function openTeam(conn) {
   await flushSave();
   closeAskPanel();
   const back = () => {
+    store.set('ln:lastTeam', null);
     installAIHooks();
     if (S.vault) { $('#shell').hidden = false; $('#welcome').hidden = true; }
     else showWelcome();
   };
-  if (conn?.token) await startTeam(conn, { onExit: back });
-  else await showTeamSignIn({ url: conn?.url || '', onBack: back });
+  if (conn?.token) {
+    store.set('ln:lastTeam', conn.url);
+    await startTeam(conn, { onExit: back });
+  } else await showTeamSignIn({ url: conn?.url || '', onBack: back });
 }
 
 // When this UI is served by a team server, it *is* the team app.
@@ -1912,6 +1915,10 @@ async function boot() {
   }
   if (S.boot.vault) await openVault(S.boot.vault);
   else showWelcome();
+  // If the app was closed while a team workspace was open, return there with
+  // the saved token instead of making the person sign in again.
+  const lastTeam = savedTeams().find((c) => c.url === store.get('ln:lastTeam', null) && c.token);
+  if (lastTeam) await openTeam(lastTeam);
   requestAnimationFrame(() => document.body.classList.add('ready'));
 }
 

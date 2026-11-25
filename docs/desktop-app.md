@@ -35,7 +35,9 @@ From 1.4.10 onward, desktop settings are stored in `settings.json` in the app's 
 - theme, font and layout preferences,
 - recent panel state.
 
-Updating the app preserves that file. If an earlier update already cleared a connection, sign in once after installing 1.4.10; later updates keep it.
+Updating the app preserves that file. If an earlier update already cleared a connection, sign in once; later updates keep it.
+
+From 1.4.11 onward, reopening the app while you were in a team workspace takes you back to that team server automatically. Choosing **Back to local notes** or **Sign out** clears the remembered team session, so the next launch opens your local vault instead.
 
 ## Saving and closing
 

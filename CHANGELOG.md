@@ -2,6 +2,14 @@
 
 All notable changes to **Local Notes Extended**. Versions before 1.4.0 were the original Local Notes build; 1.4.0 introduced the separate Extended product identity.
 
+## 1.4.11 — 25 November 2026
+
+### Added
+
+- Reopening the desktop app while a team workspace was active now restores that team connection automatically using the saved sign-in token.
+- **Back to local notes** clears the remembered team session; **Sign out** does the same.
+- The last team server is remembered alongside the persistent settings added in 1.4.10.
+
 ## 1.4.10 — 25 November 2026
 
 ### Fixed

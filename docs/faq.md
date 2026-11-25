@@ -20,7 +20,7 @@ Install version **1.4.5 or later**. It waits for the pending autosave and title 
 
 Install version **1.4.10 or later**. Older builds kept team connections in browser `localStorage` tied to a random localhost port, so they were lost on restart or update. 1.4.10 stores them in `settings.json` in the app's user-data folder.
 
-If an earlier update already removed the connection, sign in once; future updates keep it.
+If an earlier update already removed the connection, sign in once; future updates keep it. From 1.4.11 onward, the app also reopens the last team workspace automatically. Use **Back to local notes** or **Sign out** first if you want the next launch to open your local vault.
 
 ### The app keeps asking to update
 
