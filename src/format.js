@@ -41,8 +41,11 @@ export function applyTextStyle(editor, patch, range = null) {
   for (const key of Object.keys(next)) if (!next[key]) delete next[key];
   const chain = editor.chain().focus();
   if (range) chain.setTextSelection(range);
-  if (Object.keys(next).length) chain.setMark('textStyle', next).run();
-  else chain.unsetMark('textStyle').run();
+  // setMark merges with an existing textStyle mark, so clear the old one first;
+  // otherwise removing a size/colour attribute leaves the old value in place.
+  chain.unsetMark('textStyle');
+  if (Object.keys(next).length) chain.setMark('textStyle', next);
+  chain.run();
 }
 
 export function openTextSizeMenu(editor, anchor) {
