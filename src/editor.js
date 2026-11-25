@@ -748,7 +748,7 @@ export function createEditor({ element, bubble, onUpdate, collab = null, editabl
           return state.doc.textBetween(from, to).trim().length > 0;
         },
       }),
-      Markdown.configure({ html: false, tightLists: true, bulletListMarker: '-', linkify: false, breaks: true, transformPastedText: true, transformCopiedText: false }),
+      Markdown.configure({ html: false, tightLists: true, bulletListMarker: '-', linkify: true, breaks: true, transformPastedText: true, transformCopiedText: false }),
     ],
     editorProps: {
       attributes: { class: 'prose', spellcheck: 'true' },
