@@ -6,6 +6,7 @@ With a [team server](self-hosting.md), Local Notes becomes a shared, real-time w
 
 - **Desktop app:** vault menu (top-left) → **Connect to a team server**, enter its address, then sign in.
 - **Browser:** open your server's address, e.g. `https://notes.yourcompany.com`.
+- **Local Ubuntu server:** enter the LAN address with its port, for example `http://192.168.1.48:3000`. Private IP addresses are treated as HTTP automatically, so `192.168.1.48:3000` also works.
 
 The first person to sign up on a new server becomes its admin. After that, people join with an **invite link**.
 
@@ -18,12 +19,13 @@ You can belong to as many workspaces as you like, so a company can have one per 
 | Role | Can |
 | --- | --- |
 | Owner | Everything, plus add or remove people, change roles, rename or delete the workspace |
+| Admin | Add members and grant or revoke admin/editor/viewer roles (owners only can change ownership) |
 | Editor | Create, edit, move and delete pages; comment |
 | Viewer | Read pages and comments |
 
 ## Add people to a workspace
 
-Open a workspace's `•••` menu → **Share & members**. Workspace owners can:
+Open a workspace's `•••` menu → **Share & members**. Workspace owners and admins can:
 
 - **Add people already on this server**: type a name or email, pick a role and click **Add**. They're notified and the workspace appears in their sidebar straight away.
 - **Invite with a link** for people who don't have an account yet. Links work for 14 days.
