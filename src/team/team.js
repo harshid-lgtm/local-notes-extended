@@ -758,6 +758,44 @@ async function deleteWorkspace(wsId) {
   } catch (e) { toast(e.message, { kind: 'error' }); }
 }
 
+function emailInviteDialog({ workspace, role, link, inviter }) {
+  const subject = `You're invited to "${workspace}" on Local Notes Extended`;
+  const bodyFor = (name = '') => `Hi ${name || 'there'},
+
+${inviter} invited you to join the "${workspace}" workspace on Local Notes Extended with ${ROLE_LABEL[role] || 'editor'} access.
+
+Open this link to create your account and join:
+${link}
+
+This invitation expires in 14 days. If you weren't expecting it, you can ignore this email.`;
+  const box = h(`<div class="cv email-invite">
+    <h3>Email invitation</h3>
+    <p>This opens your email app with the subject and message ready to send. Local Notes Extended does not send email itself.</p>
+    <label class="field"><span>Send to</span><input name="to" type="email" placeholder="name@example.com" autocomplete="email"></label>
+    <label class="field"><span>Their name (optional)</span><input name="toName" placeholder="Dipa"></label>
+    <label class="field"><span>Message</span><textarea name="body" rows="8">${esc(bodyFor())}</textarea></label>
+    <div class="confirm-actions">
+      <button class="btn ghost" data-copy-message>${icon('copy', 15)}<span>Copy message</span></button>
+      <button class="btn ghost" data-cancel>Cancel</button>
+      <button class="btn primary" data-open>${icon('mail', 15)}<span>Open email app</span></button>
+    </div></div>`);
+  const m = openModal(box, { className: 'small email-invite-modal' });
+  const to = $('[name=to]', box);
+  const toName = $('[name=toName]', box);
+  const body = $('[name=body]', box);
+  setTimeout(() => to.focus(), 30);
+  toName.addEventListener('input', () => { body.value = bodyFor(toName.value.trim()); });
+  $('[data-copy-message]', box).onclick = () => copy(body.value, 'Invitation copied');
+  $('[data-cancel]', box).onclick = () => m.close();
+  $('[data-open]', box).onclick = () => {
+    const address = to.value.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(address)) { to.focus(); return; }
+    const mailto = `mailto:${encodeURIComponent(address)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.value)}`;
+    m.close();
+    window.location.href = mailto;
+  };
+}
+
 async function shareDialog(wsId) {
   const ws = wsById(wsId);
   if (!ws) return;
@@ -777,13 +815,22 @@ async function shareDialog(wsId) {
       <div class="share-row"><span class="share-ic">${icon('link', 17)}</span><div class="share-copy"><strong>Invite with a link</strong><span>Anyone with the link can join for 14 days.</span></div>
         <select class="share-role">${assignableRoles.filter((r) => r !== 'owner').map((r) => `<option value="${r}">${ROLE_LABEL[r]}</option>`).join('')}</select>
         <button class="btn primary small" data-invite>Create link</button></div>
-      <div class="share-link" hidden><input readonly><button class="btn ghost small" data-copy>${icon('copy', 15)}<span>Copy</span></button></div>
+      <div class="share-link" hidden><input readonly><button class="btn ghost small" data-copy>${icon('copy', 15)}<span>Copy link</span></button><button class="btn ghost small" data-copy-invite>${icon('copy', 15)}<span>Copy invitation</span></button><button class="btn ghost small" data-email>${icon('mail', 15)}<span>Email invite</span></button></div>
     </div>` : ''}
     <div class="ws-picker"></div>
     <div class="share-members"><div class="pk-label">Members</div><div class="share-list">Loading…</div></div>
   </div>`);
   const m = openModal(box, { className: 'share-modal' });
   let memberIds = new Set();
+  let invite = null;
+  const invitationBody = (name = '') => `Hi ${name || 'there'},
+
+${T.me.name} invited you to join the "${ws.name}" workspace on Local Notes Extended with ${ROLE_LABEL[invite?.role] || 'editor'} access.
+
+Open this link to create your account and join:
+${invite?.link || ''}
+
+This invitation expires in 14 days. If you weren't expecting it, you can ignore this email.`;
   if (manager) {
     $('.ws-picker', box).append(h('<div class="pk-label">Add people already on this server</div>'), peoplePicker({
       roles: assignableRoles,
@@ -801,12 +848,18 @@ async function shareDialog(wsId) {
     try {
       const r = await T.api.post(`/api/workspaces/${wsId}/invites`, { role: $('.share-role', box).value });
       const link = `${T.api.base}/#/invite/${r.token}`;
+      invite = { link, role: r.role };
       $('.share-link', box).hidden = false;
       $('.share-link input', box).value = link;
       $('.share-link input', box).select();
     } catch (e) { toast(e.message, { kind: 'error' }); }
   });
   $('[data-copy]', box)?.addEventListener('click', () => copy($('.share-link input', box).value, 'Invite link copied'));
+  $('[data-copy-invite]', box)?.addEventListener('click', () => copy(invitationBody(), 'Invitation copied'));
+  $('[data-email]', box)?.addEventListener('click', () => {
+    if (!invite) return;
+    emailInviteDialog({ workspace: ws.name, role: invite.role, link: invite.link, inviter: T.me.name });
+  });
   const renderMembers = async () => {
     const { members } = await T.api.get(`/api/workspaces/${wsId}/members`);
     memberIds = new Set(members.map((u) => u.id));

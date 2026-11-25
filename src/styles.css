@@ -1480,3 +1480,16 @@ body.ai-chat-open .outline { display: none; }
 @media (max-width: 640px) {
   .bubble { height: auto; min-height: 38px; flex-wrap: wrap; justify-content: center; }
 }
+
+/* Invitation message dialog */
+.email-invite-modal { max-width: 560px; }
+.email-invite p { margin: 0 0 14px; color: var(--text-2); font-size: 13.5px; line-height: 1.5; }
+.email-invite textarea {
+  width: 100%; min-height: 150px; padding: 10px 12px; border: 0; border-radius: 8px; outline: 0;
+  background: var(--bg); color: var(--text); box-shadow: inset 0 0 0 1px var(--border-strong);
+  font: inherit; font-size: 13.5px; line-height: 1.5; resize: vertical;
+}
+.email-invite textarea:focus { box-shadow: inset 0 0 0 1.5px var(--accent), 0 0 0 3px var(--accent-soft); }
+.email-invite .confirm-actions { flex-wrap: wrap; }
+.share-link { flex-wrap: wrap; }
+.share-link input { flex: 1 1 220px; }

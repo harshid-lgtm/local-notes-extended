@@ -2,6 +2,18 @@
 
 All notable changes to **Local Notes Extended**. Versions before 1.4.0 were the original Local Notes build; 1.4.0 introduced the separate Extended product identity.
 
+## 1.4.9 — 25 November 2026
+
+### Added
+
+- **Copy invitation** copies the whole invitation message instead of only the URL.
+- **Email invite** opens the default email app with a complete subject, salutation, workspace name, inviter, role, join link and expiry.
+- The invitation can be edited before opening the email app.
+
+### Note
+
+Local Notes Extended has no mail server and does not send email by itself. The email action prepares the message in the user's own mail app; the sender still presses Send. Automatic server-sent invitations would require SMTP credentials to be configured.
+
 ## 1.4.8 — 25 November 2026
 
 ### Changed

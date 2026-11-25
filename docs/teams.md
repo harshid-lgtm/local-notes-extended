@@ -29,6 +29,8 @@ Open a workspace's `•••` menu → **Share & members**. Workspace owners an
 
 - **Add people already on this server**: type a name or email, pick a role and click **Add**. They're notified and the workspace appears in their sidebar straight away.
 - **Invite with a link** for people who don't have an account yet. Links work for 14 days.
+- **Copy invitation** to copy a ready-to-send message with the workspace name, inviter, role and link.
+- **Email invite** to open your own email app with that message filled in. Local Notes Extended has no mail server, so the app cannot send the email itself; press Send in your mail app.
 - Change anyone's role, or remove them with **×**. Removing someone disconnects them from the workspace's pages immediately.
 
 ## Share a page with selected people
