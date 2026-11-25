@@ -6,7 +6,7 @@
 #
 services:
   notes:
-    image: ghcr.io/harshid-lgtm/local-notes-team:latest
+    image: ghcr.io/harshid-lgtm/local-notes-extended-team:latest
     restart: unless-stopped
     environment:
       TEAM_NAME: ${TEAM_NAME:-Team}

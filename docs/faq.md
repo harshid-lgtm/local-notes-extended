@@ -34,4 +34,4 @@ Local vaults: only when you use an AI feature, and then only to the provider you
 
 ### I found a bug
 
-Please [open an issue](https://github.com/harshid-lgtm/local-notes/issues) with steps to reproduce.
+Please [open an issue](https://github.com/harshid-lgtm/local-notes-extended/issues) with steps to reproduce.

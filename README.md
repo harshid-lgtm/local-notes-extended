@@ -4,7 +4,7 @@
 
 ![Local Notes](site/img/hero-light.png)
 
-📖 **[Read the documentation](docs/README.md)** · 🌐 **[Website](https://harshid-lgtm.github.io/local-notes/)**
+📖 **[Read the documentation](docs/README.md)** · 🌐 **[Website](https://harshid-lgtm.github.io/local-notes-extended/)**
 
 ## Download
 

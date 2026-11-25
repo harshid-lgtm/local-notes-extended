@@ -7,7 +7,7 @@ The team server is a small Node.js app that stores everything in one folder: a S
 You need a small Linux server (1 GB RAM is plenty) with Docker, and a domain name.
 
 1. Point a DNS record such as `notes.yourcompany.com` at the server.
-2. Download the deploy kit: [`docker-compose.yml`](https://github.com/harshid-lgtm/local-notes/blob/main/team-server/deploy/docker-compose.yml), [`Caddyfile`](https://github.com/harshid-lgtm/local-notes/blob/main/team-server/deploy/Caddyfile) and [`.env.example`](https://github.com/harshid-lgtm/local-notes/blob/main/team-server/deploy/.env.example).
+2. Download the deploy kit: [`docker-compose.yml`](https://github.com/harshid-lgtm/local-notes-extended/blob/main/team-server/deploy/docker-compose.yml), [`Caddyfile`](https://github.com/harshid-lgtm/local-notes-extended/blob/main/team-server/deploy/Caddyfile) and [`.env.example`](https://github.com/harshid-lgtm/local-notes-extended/blob/main/team-server/deploy/.env.example).
 3. Configure and start:
 
    ```bash

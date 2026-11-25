@@ -2,7 +2,7 @@
 
 ## Install
 
-Download the installer for your computer from the [website](https://harshid-lgtm.github.io/local-notes/#download) or the [latest release](https://github.com/harshid-lgtm/local-notes/releases/latest).
+Download the installer for your computer from the [website](https://harshid-lgtm.github.io/local-notes-extended/#download) or the [latest release](https://github.com/harshid-lgtm/local-notes-extended/releases/latest).
 
 | Platform | File | Notes |
 | --- | --- | --- |
