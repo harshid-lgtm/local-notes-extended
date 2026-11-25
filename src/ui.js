@@ -140,11 +140,22 @@ export function toast(message, { kind = 'info', timeout = 2600, action = null } 
 }
 
 // ------------------------------------------------------------------ prefs
+const desktopStore = window.desktop?.settings;
+
 export const store = {
   get(key, fallback) {
-    try { const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); } catch { return fallback; }
+    if (desktopStore?.has(key)) return desktopStore.get(key);
+    try {
+      const v = localStorage.getItem(key);
+      if (v == null) return fallback;
+      const parsed = JSON.parse(v);
+      // Migrate values written by older builds before the file-backed store.
+      desktopStore?.set(key, parsed);
+      return parsed;
+    } catch { return fallback; }
   },
   set(key, value) {
+    desktopStore?.set(key, value);
     try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage unavailable */ }
   },
 };

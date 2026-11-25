@@ -2,6 +2,18 @@
 
 All notable changes to **Local Notes Extended**. Versions before 1.4.0 were the original Local Notes build; 1.4.0 introduced the separate Extended product identity.
 
+## 1.4.10 — 25 November 2026
+
+### Fixed
+
+- Desktop settings no longer live only in `localStorage` tied to the embedded server's random localhost port. Team server connections, saved sign-ins, theme, layout and other preferences are stored in `settings.json` under the app's user-data folder.
+- Updating the app now keeps connection settings; they are no longer reset by a new random localhost origin.
+- Values written by older builds are migrated from `localStorage` when first read.
+
+### Note
+
+If a pre-1.4.10 update already cleared a saved team connection, sign in to that server once. The connection is then stored in the persistent file and survives later updates.
+
 ## 1.4.9 — 25 November 2026
 
 ### Added

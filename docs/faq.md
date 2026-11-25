@@ -16,6 +16,12 @@ Yes — local vaults do not need the internet at all. Team pages need a connecti
 
 Install version **1.4.5 or later**. It waits for the pending autosave and title rename before closing the window. A hard kill from Task Manager or a system crash can still lose the last moment of typing.
 
+### I have to enter my team server again after updating
+
+Install version **1.4.10 or later**. Older builds kept team connections in browser `localStorage` tied to a random localhost port, so they were lost on restart or update. 1.4.10 stores them in `settings.json` in the app's user-data folder.
+
+If an earlier update already removed the connection, sign in once; future updates keep it.
+
 ### The app keeps asking to update
 
 The update is ready but has not been installed yet. Choose **Restart to update** in the toast. If the update prompt never appears, install the latest `Local-Notes-Extended-Setup-<version>-x64.exe` from [Releases](https://github.com/harshid-lgtm/local-notes-extended/releases/latest).

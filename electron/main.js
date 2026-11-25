@@ -35,6 +35,32 @@ let closeAllowed = false;
 let closeRequested = false;
 let closeTimer = null;
 const boundsFile = () => path.join(app.getPath('userData'), 'window.json');
+const settingsFile = () => path.join(app.getPath('userData'), 'settings.json');
+
+// localStorage is scoped to the random localhost port used by the embedded
+// server, so it does not survive a restart or an update. Keep desktop settings
+// (team connections, preferences, layout) in the user-data folder instead.
+let settingsCache = null;
+function loadSettings() {
+  if (settingsCache) return settingsCache;
+  try { settingsCache = JSON.parse(fs.readFileSync(settingsFile(), 'utf8')) || {}; }
+  catch { settingsCache = {}; }
+  return settingsCache;
+}
+function persistSettings() {
+  try {
+    fs.mkdirSync(path.dirname(settingsFile()), { recursive: true });
+    const tmp = `${settingsFile()}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(settingsCache, null, 2));
+    fs.renameSync(tmp, settingsFile());
+  } catch { /* read-only profile: keep the in-memory copy */ }
+}
+ipcMain.on('settings:read', (event) => { event.returnValue = loadSettings(); });
+ipcMain.on('settings:set', (_event, key, value) => {
+  if (typeof key !== 'string') return;
+  loadSettings()[key] = value;
+  persistSettings();
+});
 
 function loadBounds() {
   try { return JSON.parse(fs.readFileSync(boundsFile(), 'utf8')); } catch { return { width: 1320, height: 860 }; }

@@ -27,6 +27,16 @@ If the app was closed before updating, the downloaded update is checked again on
 
 The update feed is the [local-notes-extended repository](https://github.com/harshid-lgtm/local-notes-extended). The original Local Notes app uses its own repository and update feed.
 
+## Saved sign-ins and preferences
+
+From 1.4.10 onward, desktop settings are stored in `settings.json` in the app's user-data folder instead of browser `localStorage`. This covers:
+
+- team server addresses and sign-in tokens,
+- theme, font and layout preferences,
+- recent panel state.
+
+Updating the app preserves that file. If an earlier update already cleared a connection, sign in once after installing 1.4.10; later updates keep it.
+
 ## Saving and closing
 
 Every page is a normal `.md` file in your vault. Edits autosave about 650 ms after you stop typing.
