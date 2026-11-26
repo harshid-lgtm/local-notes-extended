@@ -23,6 +23,7 @@ export const api = {
   browse: (path) => req('GET', `/api/browse?${q(path ? { path } : {})}`),
   tree: () => req('GET', '/api/tree'),
   note: (path) => req('GET', `/api/note?${q({ path })}`),
+  filePreview: (path) => req('GET', `/api/file/preview?${q({ path })}`),
   stat: (path) => req('GET', `/api/stat?${q({ path })}`),
   save: (path, content, keepalive = false) => req('PUT', '/api/note', { path, content }, { keepalive }),
   create: (folder, name, content = '') => req('POST', '/api/note/create', { folder, name, content }),

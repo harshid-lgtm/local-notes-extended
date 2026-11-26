@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld('desktop', {
   pickFolder: (opts) => ipcRenderer.invoke('pick-folder', opts),
   setTheme: (dark) => ipcRenderer.send('set-theme', { dark }),
   reveal: (fullPath) => ipcRenderer.send('reveal', fullPath),
+  openPath: (fullPath) => ipcRenderer.send('open-path', fullPath),
   onUpdateReady: (cb) => ipcRenderer.on('update-ready', (_e, info) => cb(info)),
   installUpdate: () => ipcRenderer.send('install-update'),
   onCloseRequest: (cb) => ipcRenderer.on('app-close-request', () => cb()),

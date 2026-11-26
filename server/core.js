@@ -11,6 +11,7 @@ const os = require('os');
 const { execFileSync } = require('child_process');
 const ai = require('./ai');
 const AnthropicSDK = require('@anthropic-ai/sdk');
+const mammoth = require('mammoth');
 const { VaultSearch } = require('./search');
 const exportNote = require('./export');
 
@@ -18,6 +19,9 @@ const aiClient = ai.createAI({ Anthropic: AnthropicSDK.default || AnthropicSDK }
 
 const IGNORED = new Set(['.git', '.obsidian', '.trash', 'node_modules', '.DS_Store', '__pycache__']);
 const NOTE_EXT = '.md';
+const TEXT_PREVIEW_EXT = new Set(['.txt', '.csv', '.json', '.xml', '.yaml', '.yml', '.log', '.html', '.htm', '.css', '.js', '.ts', '.md']);
+const IMAGE_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif', '.bmp', '.svg', '.ico']);
+const MEDIA_EXT = new Set(['.mp4', '.webm', '.mov', '.mp3', '.wav']);
 const MAX_TREE_ENTRIES = 20000;
 const IS_WIN = process.platform === 'win32';
 const IS_WSL = !IS_WIN && os.release().toLowerCase().includes('microsoft');
@@ -28,6 +32,11 @@ const MIME = {
   '.gif': 'image/gif', '.webp': 'image/webp', '.avif': 'image/avif', '.bmp': 'image/bmp', '.ico': 'image/x-icon',
   '.woff2': 'font/woff2', '.woff': 'font/woff', '.pdf': 'application/pdf', '.mp4': 'video/mp4', '.mp3': 'audio/mpeg',
   '.txt': 'text/plain; charset=utf-8', '.md': 'text/markdown; charset=utf-8',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.doc': 'application/msword', '.csv': 'text/csv; charset=utf-8', '.json': 'application/json',
+  '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  '.zip': 'application/zip', '.webm': 'video/webm', '.mov': 'video/quicktime', '.wav': 'audio/wav',
   '.webmanifest': 'application/manifest+json; charset=utf-8',
 };
 
@@ -245,12 +254,16 @@ function createVaultServer({ configDir, publicDir }) {
         else if (e.isFile()) {
           const rel = relOf(vault, full);
           files.push(rel);
+          let st;
+          try { st = await fsp.stat(full); } catch { continue; }
           if (e.name.toLowerCase().endsWith(NOTE_EXT)) {
-            let st;
-            try { st = await fsp.stat(full); } catch { continue; }
             const n = { type: 'note', name: stem(e.name), path: rel, mtime: st.mtimeMs / 1000, size: st.size };
             ns.push(n);
             notes.push(n);
+          } else {
+            // Non-markdown files stay in the same tree so PDFs, Word
+            // documents, text files and media can be opened from the sidebar.
+            ns.push({ type: 'file', name: e.name, path: rel, mtime: st.mtimeMs / 1000, size: st.size, ext: path.extname(e.name).toLowerCase() });
           }
         }
       }
@@ -352,6 +365,24 @@ function createVaultServer({ configDir, publicDir }) {
       if (!isFile(p)) throw new ApiError(404, 'Note not found');
       const st = fs.statSync(p);
       return { path: relOf(v, p), content: await fsp.readFile(p, 'utf8'), mtime: st.mtimeMs / 1000, ctime: st.birthtimeMs / 1000 };
+    },
+    'GET /api/file/preview': async (q) => {
+      const v = vaultOrError();
+      const p = safeJoin(v, q.path);
+      if (!isFile(p)) throw new ApiError(404, 'File not found');
+      const ext = path.extname(p).toLowerCase();
+      const name = path.basename(p);
+      if (ext === '.docx') {
+        const result = await mammoth.convertToHtml({ path: p });
+        return { name, ext, kind: 'docx', html: result.value, messages: result.messages.map((m) => m.message) };
+      }
+      if (TEXT_PREVIEW_EXT.has(ext)) {
+        return { name, ext, kind: 'text', text: await fsp.readFile(p, 'utf8') };
+      }
+      if (IMAGE_EXT.has(ext)) return { name, ext, kind: 'image' };
+      if (ext === '.pdf') return { name, ext, kind: 'pdf' };
+      if (MEDIA_EXT.has(ext)) return { name, ext, kind: 'media' };
+      return { name, ext, kind: 'external' };
     },
     'GET /api/stat': (q) => {
       const v = vaultOrError();

@@ -2,6 +2,19 @@
 
 All notable changes to **Local Notes Extended**. Versions before 1.4.0 were the original Local Notes build; 1.4.0 introduced the separate Extended product identity.
 
+## 1.5.0 — 26 November 2026
+
+### Added
+
+- Non-Markdown files now appear in the vault sidebar.
+- Read-only previews for PDF, Word `.docx`, text/CSV/JSON/HTML, images, audio and video.
+- Other file types offer **Open default app**, **Download** and **Show in folder**.
+- Desktop IPC to open a vault file in its default application.
+
+### Note
+
+Search, backlinks and the graph still index Markdown pages. Word `.doc` (legacy binary) and spreadsheet/presentation formats are opened with the system application rather than rendered in-app.
+
 ## 1.4.14 — 26 November 2026
 
 ### Fixed

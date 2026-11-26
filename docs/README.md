@@ -7,6 +7,7 @@ Local Notes Extended is a calm, Notion-style editor for plain markdown files. Yo
 - [Getting started](getting-started.md) — install the app, open a vault, find your way around
 - [Desktop app, updates and saving](desktop-app.md) — updates, close protection and the Extended icon
 - [Writing](writing.md) — blocks, the slash menu, text size and colour, links, tables, callouts
+- [Files in your vault](files.md) — open PDFs, Word documents, text files, images and media
 - [Organizing](organizing.md) — folders, subpages, favorites, search and commands
 
 ## Go further

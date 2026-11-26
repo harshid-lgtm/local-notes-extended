@@ -21,6 +21,7 @@ const S = {
   files: [],
   notes: [],           // flat [{path, name, folder, mtime}]
   current: null,       // {path, mtime, fm, eol, dirty}
+  currentFile: null,   // non-markdown file shown in the preview
   expanded: new Set(),
   favorites: [],
   recents: [],
@@ -375,7 +376,7 @@ async function refreshTree() {
   S.notes = [];
   const walk = (items) => items.forEach((it) => {
     if (it.type === 'note') S.notes.push({ path: it.path, name: it.name, folder: dirName(it.path), mtime: it.mtime });
-    else walk(it.children);
+    else if (it.type === 'folder') walk(it.children);
   });
   walk(S.tree);
   const exists = new Set(S.notes.map((n) => n.path));
@@ -388,18 +389,31 @@ async function refreshTree() {
 
 // ================================================================== sidebar
 // A page "X.md" with a sibling folder "X/" is shown as one page with subpages (wiki style).
+const fileKind = (it) => {
+  const ext = String(it.ext || baseName(it.path).split('.').pop() || '').toLowerCase();
+  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'bmp', 'svg', 'ico'].includes(ext)) return 'image';
+  if (['mp4', 'webm', 'mov', 'mp3', 'wav'].includes(ext)) return 'media';
+  if (['pdf', 'docx', 'doc'].includes(ext)) return 'document';
+  return 'file';
+};
+
 function rowHTML(it, depth, sub = null) {
   const isFolder = it.type === 'folder';
+  const isFile = it.type === 'file';
   const container = isFolder ? it.path : sub?.path;
   const open = container && S.expanded.has(container);
-  const active = !isFolder && S.current?.path === it.path;
-  return `<div class="row ${isFolder ? 'folder' : 'note'} ${sub ? 'has-sub' : ''} ${active ? 'active' : ''} ${open ? 'open' : ''}" data-path="${esc(it.path)}" data-type="${it.type}" ${sub ? `data-sub="${esc(sub.path)}"` : ''} draggable="true" style="--depth:${depth}">
+  const active = !isFolder && (S.current?.path === it.path || S.currentFile === it.path);
+  const kind = isFile ? fileKind(it) : '';
+  const rowIcon = isFolder ? icon(open ? 'folder-open' : 'folder', 16)
+    : isFile ? icon(kind === 'image' ? 'image' : kind === 'media' ? 'video' : 'page', 16)
+      : icon(sub ? 'book' : 'page', 16);
+  return `<div class="row ${isFolder ? 'folder' : isFile ? `file file-${kind}` : 'note'} ${sub ? 'has-sub' : ''} ${active ? 'active' : ''} ${open ? 'open' : ''}" data-path="${esc(it.path)}" data-type="${it.type}" ${sub ? `data-sub="${esc(sub.path)}"` : ''} draggable="${isFile ? 'false' : 'true'}" style="--depth:${depth}">
     <span class="twisty">${isFolder || sub ? icon('chevron-right', 14, 2) : ''}</span>
-    <span class="row-icon">${isFolder ? icon(open ? 'folder-open' : 'folder', 16) : icon(sub ? 'book' : 'page', 16)}</span>
+    <span class="row-icon">${rowIcon}</span>
     <span class="row-label">${esc(it.name)}</span>
     <span class="row-actions">
       <button class="row-btn" data-act="more" title="More">${icon('more', 15)}</button>
-      <button class="row-btn" data-act="add" title="${isFolder ? 'New page inside' : 'Add a subpage'}">${icon('plus', 15)}</button>
+      ${isFile ? '' : `<button class="row-btn" data-act="add" title="${isFolder ? 'New page inside' : 'Add a subpage'}">${icon('plus', 15)}</button>`}
     </span>
   </div>`;
 }
@@ -448,7 +462,9 @@ function renderFavorites() {
 }
 
 function markActive() {
-  document.querySelectorAll('.sidebar .row.note').forEach((r) => r.classList.toggle('active', r.dataset.path === S.current?.path));
+  document.querySelectorAll('.sidebar .row.note, .sidebar .row.file').forEach((r) => {
+    r.classList.toggle('active', r.dataset.path === (S.current?.path || S.currentFile));
+  });
 }
 
 function revealInTree(path) {
@@ -473,6 +489,17 @@ function toggleFolder(path) {
 function rowMenu(row, at) {
   const path = row.dataset.path;
   const isFolder = row.dataset.type === 'folder';
+  if (row.dataset.type === 'file') {
+    showMenu([
+      { label: 'Open', icon: 'page', run: () => openFile(path) },
+      ...(window.desktop ? [
+        { label: isMacOS ? 'Open with default app' : 'Open with default app', icon: 'external', run: () => window.desktop.openPath(fullPathOf(path)) },
+        { label: isMacOS ? 'Reveal in Finder' : 'Show in folder', icon: 'folder-open', run: () => window.desktop.reveal(fullPathOf(path)) },
+      ] : []),
+      { label: 'Copy file path', icon: 'copy', run: () => copy(fullPathOf(path), 'Path copied') },
+    ], at);
+    return;
+  }
   const fav = S.favorites.includes(path);
   const items = isFolder
     ? [
@@ -621,6 +648,7 @@ function wireSidebar() {
       return;
     }
     if (row.dataset.type === 'folder') toggleFolder(row.dataset.path);
+    else if (row.dataset.type === 'file') openFile(row.dataset.path);
     else if (row.dataset.sub && e.target.closest('.twisty')) toggleFolder(row.dataset.sub);
     else openNote(row.dataset.path);
   });
@@ -757,6 +785,7 @@ function greeting() {
 function showHome() {
   if (S.current?.dirty) flushSave();
   S.current = null;
+  S.currentFile = null;
   history.replaceState(null, '', '#');
   hideGraph();
   $('#page').hidden = true;
@@ -839,8 +868,69 @@ function updatePageChrome() {
   $('#edited').textContent = S.current.mtime ? `Edited ${timeAgo(S.current.mtime)}` : '';
 }
 
+function fileSize(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+async function openFile(path) {
+  const name = baseName(path);
+  const ext = path.split('.').pop().toLowerCase();
+  const full = fullPathOf(path);
+  S.currentFile = path;
+  markActive();
+  const box = h(`<div class="file-view">
+    <div class="file-head">
+      <div><h2>${esc(name)}</h2><span>${esc(ext.toUpperCase())} file · read-only preview</span></div>
+      <div class="file-actions">
+        ${window.desktop ? `<button class="btn ghost small" data-system>${icon('external', 15)}<span>Open default app</span></button>` : ''}
+        <button class="btn ghost small" data-download>${icon('download', 15)}<span>Download</span></button>
+        ${window.desktop ? `<button class="icon-btn" data-reveal title="Show in folder">${icon('folder-open', 17)}</button>` : ''}
+        <button class="icon-btn" data-close title="Close">${icon('x', 18)}</button>
+      </div>
+    </div>
+    <div class="file-body"><div class="file-loading">Opening file…</div></div>
+  </div>`);
+  const m = openModal(box, { className: 'file-modal' });
+  $('[data-close]', box).onclick = () => m.close();
+  $('[data-download]', box).onclick = () => {
+    const a = document.createElement('a');
+    a.href = api.fileUrl(path);
+    a.download = name;
+    a.click();
+  };
+  $('[data-system]', box)?.addEventListener('click', () => window.desktop.openPath(full));
+  $('[data-reveal]', box)?.addEventListener('click', () => window.desktop.reveal(full));
+  const body = $('.file-body', box);
+  try {
+    const data = await api.filePreview(path);
+    if (data.kind === 'text') {
+      body.innerHTML = '<pre class="file-text"></pre>';
+      $('.file-text', body).textContent = data.text;
+    } else if (data.kind === 'docx') {
+      body.innerHTML = `<div class="file-doc">${data.html || '<p>This document is empty.</p>'}</div>`;
+    } else if (data.kind === 'image') {
+      body.innerHTML = `<img class="file-image" src="${esc(api.fileUrl(path))}" alt="${esc(name)}">`;
+    } else if (data.kind === 'pdf') {
+      body.innerHTML = `<iframe class="file-frame" src="${esc(api.fileUrl(path))}" title="${esc(name)}"></iframe>`;
+    } else if (data.kind === 'media') {
+      body.innerHTML = ['mp3', 'wav'].includes(ext)
+        ? `<audio class="file-media" controls src="${esc(api.fileUrl(path))}"></audio>`
+        : `<video class="file-frame" controls src="${esc(api.fileUrl(path))}"></video>`;
+    } else {
+      body.innerHTML = `<div class="file-external">${icon('page', 34, 1.3)}<h3>${esc(name)}</h3><p>This file type opens in its default application.</p>${window.desktop ? '<button class="btn primary" data-system>Open file</button>' : ''}</div>`;
+      $('.file-external [data-system]', body)?.addEventListener('click', () => window.desktop.openPath(full));
+    }
+  } catch (e) {
+    body.innerHTML = `<div class="file-external">${icon('error', 30, 1.4)}<h3>Couldn’t open the file</h3><p>${esc(e.message)}</p></div>`;
+  }
+}
+
 async function openNote(path, { fresh = false, replace = false } = {}) {
   await flushSave();
+  S.currentFile = null;
   let data;
   try {
     data = await api.note(path);

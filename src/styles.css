@@ -1493,3 +1493,35 @@ body.ai-chat-open .outline { display: none; }
 .email-invite .confirm-actions { flex-wrap: wrap; }
 .share-link { flex-wrap: wrap; }
 .share-link input { flex: 1 1 220px; }
+
+/* File previews (PDF, Word, text, images and media) */
+.file-modal { max-width: 980px; width: min(980px, calc(100vw - 36px)); }
+.file-view { display: flex; flex-direction: column; max-height: min(86vh, 900px); }
+.file-head { display: flex; align-items: flex-start; gap: 14px; padding: 20px 18px 14px 22px; border-bottom: 1px solid var(--border); }
+.file-head > div:first-child { flex: 1; min-width: 0; }
+.file-head h2 { margin: 0 0 3px; font-size: 17px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-head span { color: var(--text-3); font-size: 12.5px; }
+.file-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.file-body { min-height: 180px; overflow: auto; background: var(--bg-soft); }
+.file-loading { padding: 60px 24px; text-align: center; color: var(--text-3); }
+.file-text { margin: 0; padding: 22px 24px; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.65; color: var(--text); }
+.file-doc { max-width: 780px; margin: 0 auto; padding: 26px 30px; background: var(--bg-elev); color: var(--text); font-size: 14.5px; line-height: 1.65; }
+.file-doc h1, .file-doc h2, .file-doc h3 { line-height: 1.25; }
+.file-doc table { border-collapse: collapse; max-width: 100%; }
+.file-doc th, .file-doc td { border: 1px solid var(--border-strong); padding: 5px 8px; }
+.file-doc img { max-width: 100%; height: auto; }
+.file-frame { display: block; width: 100%; height: min(70vh, 760px); border: 0; background: #fff; }
+.file-image { display: block; max-width: 100%; max-height: 72vh; margin: 0 auto; object-fit: contain; }
+.file-media { display: block; width: min(680px, 90%); margin: 50px auto; }
+.file-external { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 58px 24px; text-align: center; color: var(--text-2); }
+.file-external h3 { margin: 4px 0 0; color: var(--text); }
+.file-external p { margin: 0 0 10px; }
+.row.file .row-icon { color: var(--text-3); }
+.row.file.file-document .row-icon { color: var(--accent-text); }
+.row.file.file-image .row-icon { color: var(--text-2); }
+@media (max-width: 640px) {
+  .file-modal { width: calc(100vw - 16px); }
+  .file-head { padding: 16px 14px 12px; flex-wrap: wrap; }
+  .file-actions { width: 100%; justify-content: flex-start; }
+  .file-doc { padding: 18px; }
+}

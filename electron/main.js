@@ -183,6 +183,7 @@ ipcMain.on('set-theme', (_e, { dark }) => {
   if (win) win.setBackgroundColor(dark ? '#191918' : '#ffffff');
 });
 ipcMain.on('reveal', (_e, p) => { if (typeof p === 'string' && fs.existsSync(p)) shell.showItemInFolder(p); });
+ipcMain.on('open-path', (_e, p) => { if (typeof p === 'string' && fs.existsSync(p)) shell.openPath(p); });
 ipcMain.on('app-close-ready', () => {
   closeAllowed = true;
   clearTimeout(closeTimer);
