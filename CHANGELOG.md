@@ -2,6 +2,13 @@
 
 All notable changes to **Local Notes Extended**. Versions before 1.4.0 were the original Local Notes build; 1.4.0 introduced the separate Extended product identity.
 
+## 1.4.14 — 26 November 2026
+
+### Fixed
+
+- Share dialog headers now read **Share Local Notes Extended** and **Share Page name** without mojibake quotation marks.
+- Corrected lingering UTF-8 text corruption in team-dialog strings.
+
 ## 1.4.13 — 26 November 2026
 
 ### Fixed

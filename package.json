@@ -1,6 +1,6 @@
 {
   "name": "local-notes-extended",
-  "version": "1.4.13",
+  "version": "1.4.14",
   "description": "A calm, Notion-style editor for markdown notes with ranked search, DOCX/PDF export, mobile PWA, admin-managed teams and AI.",
   "scripts": {
     "build": "node scripts/build.mjs",
