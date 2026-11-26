@@ -27,6 +27,10 @@ If the app was closed before updating, the downloaded update is checked again on
 
 The update feed is the [local-notes-extended repository](https://github.com/harshid-lgtm/local-notes-extended). The original Local Notes app uses its own repository and update feed.
 
+## Start page
+
+The desktop app opens on **Home**. A team session is restored to the team Home rather than the last page you had open. Use the **Search** button in the top bar or `Ctrl/⌘ K` at any time.
+
 ## Saved sign-ins and preferences
 
 From 1.4.10 onward, desktop settings are stored in `settings.json` in the app's user-data folder instead of browser `localStorage`. This covers:

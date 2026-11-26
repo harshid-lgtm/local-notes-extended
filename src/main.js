@@ -1913,8 +1913,10 @@ async function boot() {
     document.body.innerHTML = '<div class="fatal">Can’t reach the Local Notes Extended server. Is it running?</div>';
     return;
   }
-  if (S.boot.vault) await openVault(S.boot.vault);
-  else showWelcome();
+  if (S.boot.vault) {
+    await openVault(S.boot.vault);
+    showHome();
+  } else showWelcome();
   // If the app was closed while a team workspace was open, return there with
   // the saved token instead of making the person sign in again.
   const lastTeam = savedTeams().find((c) => c.url === store.get('ln:lastTeam', null) && c.token);

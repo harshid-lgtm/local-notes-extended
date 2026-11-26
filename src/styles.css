@@ -1424,7 +1424,7 @@ body.ai-chat-open .outline { display: none; }
   .action em { display: none; }
 }
 
-.mobile-search { display: none; }
+.mobile-search { display: inline-grid; width: 38px; height: 38px; }
 @media (max-width: 640px) {
   .mobile-search { display: inline-grid; width: 38px; height: 38px; }
 }

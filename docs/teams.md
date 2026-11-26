@@ -10,6 +10,8 @@ With a [team server](self-hosting.md), Local Notes becomes a shared, real-time w
 
 The first person to sign up on a new server becomes its admin. After that, people join with an **invite link**.
 
+The sign-in screen remembers server addresses you have connected to and suggests them as you type. Email fields also remember addresses used on this device; the browser’s standard email autofill can offer account contacts, but the app does not read Gmail contacts directly without Google OAuth.
+
 ## Private and shared
 
 The sidebar shows **Private** — pages only you can see unless you share them — then **Shared with me**, then each team workspace you belong to. Workspace members see every page in it, except pages set to *Only people invited*.

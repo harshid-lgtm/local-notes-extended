@@ -17,6 +17,30 @@ const md = new MarkdownIt({ html: false, linkify: true, breaks: true });
 const initials = (name) => (name || '?').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 const avatar = (u, size = 24) => `<span class="avatar" style="--c:${esc(u?.color || '#999')};--s:${size}px" title="${esc(u?.name || '')}">${esc(initials(u?.name))}</span>`;
 const ROLE_LABEL = { owner: 'Owner', admin: 'Admin', editor: 'Can edit', viewer: 'Can view' };
+
+const serverAddresses = () => [...new Set([
+  ...savedTeams().map((c) => c.url),
+  ...store.get('ln:serverAddresses', []),
+].filter(Boolean))].slice(0, 8);
+
+function rememberServer(url) {
+  if (!url) return;
+  store.set('ln:serverAddresses', [...new Set([url, ...serverAddresses()])].slice(0, 8));
+}
+
+const emailBook = () => store.get('ln:emailBook', []);
+function rememberEmail(email, name = '') {
+  const value = String(email || '').trim().toLowerCase();
+  if (!value) return;
+  const rest = emailBook().filter((e) => e.email !== value);
+  store.set('ln:emailBook', [{ email: value, name: name || '' }, ...rest].slice(0, 50));
+}
+const emailOptions = () => {
+  const seen = new Set();
+  return [...emailBook(), ...savedTeams().map((c) => c.user).filter(Boolean)]
+    .filter((e) => e.email && !seen.has(e.email) && seen.add(e.email))
+    .slice(0, 40);
+};
 const versionAtLeast = (version, minimum) => {
   const a = String(version || '').split('.').map((n) => parseInt(n, 10) || 0);
   const b = String(minimum || '').split('.').map((n) => parseInt(n, 10) || 0);
@@ -31,6 +55,7 @@ export async function showTeamSignIn({ hosted = false, url = '', invite = null, 
   const root = mountRoot();
   let info = null;
   let mode = 'login';
+  url = url || savedTeams()[0]?.url || store.get('ln:serverAddresses', [])[0] || '';
   const serverUrl = () => (hosted ? location.origin : normalizeUrl($('[name=server]', root)?.value || url));
 
   async function loadInfo() {
@@ -68,10 +93,12 @@ export async function showTeamSignIn({ hosted = false, url = '', invite = null, 
           <p class="auth-sub">${sub}</p>
           ${info?.inviteError ? `<div class="auth-error">${esc(info.inviteError)}</div>` : ''}
           <form class="auth-form" novalidate>
-            ${hosted ? '' : `<label class="field"><span>Server address</span><input name="server" placeholder="notes.yourcompany.com or 192.168.1.48:3000" value="${esc(url)}" spellcheck="false" autocomplete="url"></label>`}
+            ${hosted ? '' : `<label class="field"><span>Server address</span><input name="server" list="auth-servers" placeholder="notes.yourcompany.com or 192.168.1.48:3000" value="${esc(url)}" spellcheck="false" autocomplete="url"></label>
+              <datalist id="auth-servers">${serverAddresses().map((u) => `<option value="${esc(u)}"></option>`).join('')}</datalist>`}
             ${info?.error ? `<div class="auth-error">${esc(info.error)}</div>` : ''}
             ${mode === 'signup' ? '<label class="field"><span>Your name</span><input name="name" autocomplete="name" placeholder="Maya Chen"></label>' : ''}
-            <label class="field"><span>Email</span><input name="email" type="email" autocomplete="email" placeholder="you@company.com"></label>
+            <label class="field"><span>Email</span><input name="email" type="email" list="auth-emails" autocomplete="email" placeholder="you@company.com"></label>
+            <datalist id="auth-emails">${emailOptions().map((e) => `<option value="${esc(e.email)}">${esc(e.name || '')}</option>`).join('')}</datalist>
             <label class="field"><span>Password</span><input name="password" type="password" autocomplete="${mode === 'signup' ? 'new-password' : 'current-password'}" placeholder="${mode === 'signup' ? 'At least 8 characters' : ''}"></label>
             <button class="btn primary large auth-submit" type="submit">${mode === 'signup' ? (first ? 'Create admin account' : 'Create account') : 'Sign in'}</button>
           </form>
@@ -96,6 +123,8 @@ export async function showTeamSignIn({ hosted = false, url = '', invite = null, 
         const r = await api.post(mode === 'signup' ? '/api/auth/signup' : '/api/auth/login', { ...f, invite });
         const conn = { url: base, token: r.token, user: r.user };
         saveTeam(conn);
+        rememberServer(base);
+        rememberEmail(r.user?.email, r.user?.name);
         store.set('ln:lastTeam', base);
         if (invite && hosted) history.replaceState(null, '', '#');
         root.remove();
@@ -773,8 +802,9 @@ This invitation expires in 14 days. If you weren't expecting it, you can ignore 
   const box = h(`<div class="cv email-invite">
     <h3>Email invitation</h3>
     <p>This opens your email app with the subject and message ready to send. Local Notes Extended does not send email itself.</p>
-    <label class="field"><span>Send to</span><input name="to" type="email" placeholder="name@example.com" autocomplete="email"></label>
+    <label class="field"><span>Send to</span><input name="to" type="email" list="invite-emails" placeholder="name@example.com" autocomplete="email"></label>
     <label class="field"><span>Their name (optional)</span><input name="toName" placeholder="Dipa"></label>
+    <datalist id="invite-emails">${emailOptions().map((e) => `<option value="${esc(e.email)}">${esc(e.name || '')}</option>`).join('')}</datalist>
     <label class="field"><span>Message</span><textarea name="body" rows="8">${esc(bodyFor())}</textarea></label>
     <div class="confirm-actions">
       <button class="btn ghost" data-copy-message>${icon('copy', 15)}<span>Copy message</span></button>
@@ -792,6 +822,7 @@ This invitation expires in 14 days. If you weren't expecting it, you can ignore 
   $('[data-open]', box).onclick = () => {
     const address = to.value.trim();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(address)) { to.focus(); return; }
+    rememberEmail(address, toName.value.trim());
     const mailto = `mailto:${encodeURIComponent(address)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.value)}`;
     m.close();
     window.location.href = mailto;
@@ -906,10 +937,12 @@ async function trashDialog(wsId) {
 
 // Search everyone on this server by name or email, choose a role, and add them.
 function peoplePicker({ roles = ['editor', 'viewer'], role = 'editor', button = 'Invite', exclude = () => new Set(), onAdd }) {
+  const listId = `pp-emails-${Math.random().toString(36).slice(2, 8)}`;
   const el = h(`<div class="pp">
     <div class="pp-row">
       <span class="pp-ic">${icon('user-plus', 16)}</span>
-      <input class="pp-input" placeholder="Add people by name or email" autocomplete="off" spellcheck="false">
+      <input class="pp-input" list="${listId}" placeholder="Add people by name or email" autocomplete="email" spellcheck="false">
+      <datalist id="${listId}">${emailOptions().map((e) => `<option value="${esc(e.email)}">${esc(e.name || '')}</option>`).join('')}</datalist>
       <select class="pp-role">${roles.map((r) => `<option value="${r}" ${r === role ? 'selected' : ''}>${ROLE_LABEL[r]}</option>`).join('')}</select>
       <button class="btn primary small" data-add disabled>${esc(button)}</button>
     </div>
@@ -980,7 +1013,9 @@ function peoplePicker({ roles = ['editor', 'viewer'], role = 'editor', button = 
     addBtn.disabled = true;
     const role = $('.pp-role', el).value;
     try {
-      await onAdd([...picked.values()], role);
+      const users = [...picked.values()];
+      users.forEach((u) => rememberEmail(u.email, u.name));
+      await onAdd(users, role);
       picked = new Map();
       renderChips();
     } catch (e) { toast(e.message, { kind: 'error' }); addBtn.disabled = false; }

@@ -2,6 +2,23 @@
 
 All notable changes to **Local Notes Extended**. Versions before 1.4.0 were the original Local Notes build; 1.4.0 introduced the separate Extended product identity.
 
+## 1.4.12 — 26 November 2026
+
+### Added
+
+- The team sign-in screen remembers previously used server addresses and offers them as suggestions.
+- Email fields remember addresses used on this device and offer them while typing: sign-in, workspace invitations and sharing.
+- Browser/OS email autofill remains enabled through the standard `autocomplete="email"` hint.
+
+### Changed
+
+- The desktop app now opens on **Home** instead of reopening the last page.
+- The search button is always visible in the top bar, including on desktop and when the sidebar is collapsed.
+
+### Note
+
+Direct Gmail/Google Contacts access requires Google OAuth consent; the desktop app does not read a Google account’s contact list. The suggestions come from addresses used on this device and the team server directory.
+
 ## 1.4.11 — 25 November 2026
 
 ### Added
