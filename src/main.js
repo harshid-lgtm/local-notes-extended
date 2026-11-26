@@ -407,7 +407,7 @@ function rowHTML(it, depth, sub = null) {
   const rowIcon = isFolder ? icon(open ? 'folder-open' : 'folder', 16)
     : isFile ? icon(kind === 'image' ? 'image' : kind === 'media' ? 'video' : 'page', 16)
       : icon(sub ? 'book' : 'page', 16);
-  return `<div class="row ${isFolder ? 'folder' : isFile ? `file file-${kind}` : 'note'} ${sub ? 'has-sub' : ''} ${active ? 'active' : ''} ${open ? 'open' : ''}" data-path="${esc(it.path)}" data-type="${it.type}" ${sub ? `data-sub="${esc(sub.path)}"` : ''} draggable="${isFile ? 'false' : 'true'}" style="--depth:${depth}">
+  return `<div class="row ${isFolder ? 'folder' : isFile ? `file file-${kind}` : 'note'} ${sub ? 'has-sub' : ''} ${active ? 'active' : ''} ${open ? 'open' : ''}" data-path="${esc(it.path)}" data-type="${it.type}" title="${esc(isFile ? it.path : '')}" ${sub ? `data-sub="${esc(sub.path)}"` : ''} draggable="${isFile ? 'false' : 'true'}" style="--depth:${depth}">
     <span class="twisty">${isFolder || sub ? icon('chevron-right', 14, 2) : ''}</span>
     <span class="row-icon">${rowIcon}</span>
     <span class="row-label">${esc(it.name)}</span>
@@ -422,8 +422,9 @@ function treeHTML(items, depth) {
   const folders = new Map(items.filter((i) => i.type === 'folder').map((f) => [f.name.toLowerCase(), f]));
   const merged = new Set();
   for (const it of items) if (it.type === 'note' && folders.has(it.name.toLowerCase())) merged.add(folders.get(it.name.toLowerCase()));
+  const hasNote = (node) => node.type === 'note' || (node.type === 'folder' && (node.children || []).some(hasNote));
   return items.map((it) => {
-    if (merged.has(it)) return '';
+    if (merged.has(it) || it.type === 'file' || (it.type === 'folder' && !hasNote(it))) return '';
     const sub = it.type === 'note' ? folders.get(it.name.toLowerCase()) : null;
     const container = it.type === 'folder' ? it : sub;
     let html = rowHTML(it, depth, sub);
@@ -445,11 +446,26 @@ async function addSubpage(notePath) {
   await newNote(folder);
 }
 
+function renderFiles() {
+  const items = [];
+  const walk = (nodes) => nodes.forEach((n) => {
+    if (n.type === 'file') items.push(n);
+    else if (n.type === 'folder') walk(n.children || []);
+  });
+  walk(S.tree);
+  const sec = $('#files-section');
+  if (!sec) return;
+  sec.hidden = !items.length;
+  $('#file-count').textContent = items.length || '';
+  $('#files').innerHTML = items.map((f) => rowHTML(f, 0)).join('');
+}
+
 function renderTree() {
   const el = $('#tree');
   el.innerHTML = S.tree.length ? treeHTML(S.tree, 0) : `<div class="tree-empty">This vault is empty.<br><button class="link-btn" data-new>Create your first page</button></div>`;
   $('[data-new]', el)?.addEventListener('click', () => newNote(''));
   $('#page-count').textContent = S.notes.length || '';
+  renderFiles();
 }
 
 function renderFavorites() {
@@ -732,6 +748,88 @@ function setCollapsed(v) {
   savePrefs();
 }
 
+function pickWebFiles() {
+  return new Promise((resolve) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.accept = '.md,.txt,.csv,.json,.html,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.gif,.webp,.svg,.mp4,.webm,.mp3,.wav,.zip';
+    input.style.display = 'none';
+    document.body.append(input);
+    input.addEventListener('change', () => {
+      const files = [...input.files];
+      input.remove();
+      resolve(files);
+    }, { once: true });
+    input.click();
+  });
+}
+
+async function importFiles() {
+  try {
+    let result;
+    if (window.desktop?.pickFiles) {
+      const paths = await window.desktop.pickFiles();
+      if (!paths.length) return;
+      result = await api.importPaths(paths);
+    } else {
+      const files = await pickWebFiles();
+      if (!files.length) return;
+      const payload = [];
+      for (const file of files) {
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        let binary = '';
+        for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+        payload.push({ name: file.name, data: btoa(binary) });
+      }
+      result = await api.importFiles(payload);
+    }
+    await refreshTree();
+    const first = result.files?.[0];
+    if (first) {
+      if (first.name.toLowerCase().endsWith('.md')) await openNote(first.path);
+      else await openFile(first.path);
+    }
+    toast(`Imported ${result.files?.length || 0} file${result.files?.length === 1 ? '' : 's'}`, { kind: 'success' });
+  } catch (e) {
+    toast(`Couldn’t import: ${e.message}`, { kind: 'error' });
+  }
+}
+
+function importFromUrl() {
+  const box = h(`<div class="cv">
+    <h3>Import from a web address</h3>
+    <p>Download a PDF, Word document, image or other file into this vault’s <code>Imports</code> folder.</p>
+    <label class="field"><span>Web address</span><input type="url" placeholder="https://example.com/file.pdf" spellcheck="false"></label>
+    <div class="confirm-actions"><button class="btn ghost" data-no>Cancel</button><button class="btn primary" data-yes>Download</button></div>
+  </div>`);
+  const m = openModal(box, { className: 'small' });
+  const input = $('input', box);
+  setTimeout(() => input.focus(), 30);
+  $('[data-no]', box).onclick = () => m.close();
+  $('[data-yes]', box).onclick = async () => {
+    const url = input.value.trim();
+    if (!url) { input.focus(); return; }
+    const btn = $('[data-yes]', box);
+    btn.disabled = true;
+    try {
+      const result = await api.importUrl(url);
+      m.close();
+      await refreshTree();
+      const first = result.files?.[0];
+      if (first) {
+        if (first.name.toLowerCase().endsWith('.md')) await openNote(first.path);
+        else await openFile(first.path);
+      }
+      toast('Downloaded into Imports', { kind: 'success' });
+    } catch (e) {
+      btn.disabled = false;
+      toast(`Couldn’t download: ${e.message}`, { kind: 'error' });
+    }
+  };
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') $('[data-yes]', box).click(); });
+}
+
 function vaultMenu(anchor) {
   const others = S.boot.recent.filter((r) => r.path !== S.vault.path).slice(0, 4);
   showMenu([
@@ -739,6 +837,8 @@ function vaultMenu(anchor) {
     'sep',
     ...(others.length ? [{ header: 'Switch vault' }, ...others.map((o) => ({ label: o.name, icon: 'book', run: () => switchVault(o.path) }))] : []),
     { label: 'Open another folder…', icon: 'folder-open', run: () => openFolderPicker() },
+    { label: 'Import files…', icon: 'file-plus', run: importFiles },
+    { label: 'Import from a web address…', icon: 'globe', run: importFromUrl },
     { label: 'Create a new vault…', icon: 'plus', run: () => createVaultDialog() },
     'sep',
     { header: 'Team servers' },
@@ -1691,6 +1791,10 @@ function buildShell() {
         <section>
           <div class="sb-label"><span>Pages</span><span class="count" id="page-count"></span><button class="icon-btn tiny" id="btn-add-root" title="Add a page or folder">${icon('plus', 15)}</button></div>
           <div id="tree" class="tree"></div>
+        </section>
+        <section id="files-section" hidden>
+          <div class="sb-label"><span>Files</span><span class="count" id="file-count"></span></div>
+          <div id="files" class="tree"></div>
         </section>
       </div>
       <div class="sb-foot">

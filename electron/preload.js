@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('desktop', {
   platform: process.platform,
   info: () => ipcRenderer.invoke('app-info'),
   pickFolder: (opts) => ipcRenderer.invoke('pick-folder', opts),
+  pickFiles: () => ipcRenderer.invoke('pick-files'),
   setTheme: (dark) => ipcRenderer.send('set-theme', { dark }),
   reveal: (fullPath) => ipcRenderer.send('reveal', fullPath),
   openPath: (fullPath) => ipcRenderer.send('open-path', fullPath),

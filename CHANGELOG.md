@@ -2,6 +2,16 @@
 
 All notable changes to **Local Notes Extended**. Versions before 1.4.0 were the original Local Notes build; 1.4.0 introduced the separate Extended product identity.
 
+## 1.6.0 — 26 November 2026
+
+### Added
+
+- **Import files…** in the vault menu, with a native multi-file picker on desktop.
+- **Import from a web address…** downloads a file into the vault.
+- Imported files are copied into an `Imports` folder.
+- Non-Markdown files now live in a separate **Files** sidebar section instead of being mixed into Pages.
+- Imported Markdown opens as a page; other supported formats open in the preview.
+
 ## 1.5.0 — 26 November 2026
 
 ### Added

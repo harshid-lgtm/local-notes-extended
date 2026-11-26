@@ -366,6 +366,57 @@ function createVaultServer({ configDir, publicDir }) {
       const st = fs.statSync(p);
       return { path: relOf(v, p), content: await fsp.readFile(p, 'utf8'), mtime: st.mtimeMs / 1000, ctime: st.birthtimeMs / 1000 };
     },
+    'POST /api/file/import': async (b) => {
+      const v = vaultOrError();
+      const folder = safeJoin(v, b.folder || 'Imports');
+      await fsp.mkdir(folder, { recursive: true });
+      const imported = [];
+      for (const file of Array.isArray(b.files) ? b.files : []) {
+        const name = cleanName(String(file.name || 'imported-file')) || 'imported-file';
+        const data = Buffer.from(String(file.data || ''), 'base64');
+        if (!data.length || data.length > 100 * 1024 * 1024) continue;
+        const target = uniquePath(path.join(folder, name));
+        await fsp.writeFile(target, data);
+        imported.push({ name: path.basename(target), path: relOf(v, target) });
+      }
+      return { files: imported };
+    },
+    'POST /api/file/import-path': async (b) => {
+      const v = vaultOrError();
+      const folder = safeJoin(v, b.folder || 'Imports');
+      await fsp.mkdir(folder, { recursive: true });
+      const imported = [];
+      for (const source of Array.isArray(b.paths) ? b.paths : []) {
+        if (typeof source !== 'string' || !isFile(source)) continue;
+        const st = fs.statSync(source);
+        if (st.size > 100 * 1024 * 1024) continue;
+        const target = uniquePath(path.join(folder, path.basename(source)));
+        await fsp.copyFile(source, target);
+        imported.push({ name: path.basename(target), path: relOf(v, target) });
+      }
+      return { files: imported };
+    },
+    'POST /api/file/import-url': async (b) => {
+      const v = vaultOrError();
+      let url;
+      try { url = new URL(String(b.url || '')); } catch { throw new ApiError(400, 'Enter a valid web address'); }
+      if (!['http:', 'https:'].includes(url.protocol)) throw new ApiError(400, 'Only http and https addresses are supported');
+      const res = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(30000) });
+      if (!res.ok) throw new ApiError(400, `The server returned ${res.status}`);
+      const data = Buffer.from(await res.arrayBuffer());
+      if (data.length > 100 * 1024 * 1024) throw new ApiError(400, 'File is larger than 100 MB');
+      const cd = res.headers.get('content-disposition') || '';
+      const encoded = cd.match(/filename\*=UTF-8''([^;]+)/i);
+      const plain = cd.match(/filename="?([^";]+)"?/i);
+      let name = '';
+      try { name = encoded ? decodeURIComponent(encoded[1]) : plain ? plain[1] : path.basename(url.pathname); } catch { name = path.basename(url.pathname); }
+      name = cleanName(name) || 'download';
+      const folder = safeJoin(v, b.folder || 'Imports');
+      await fsp.mkdir(folder, { recursive: true });
+      const target = uniquePath(path.join(folder, name));
+      await fsp.writeFile(target, data);
+      return { files: [{ name: path.basename(target), path: relOf(v, target) }] };
+    },
     'GET /api/file/preview': async (q) => {
       const v = vaultOrError();
       const p = safeJoin(v, q.path);

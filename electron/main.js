@@ -169,6 +169,18 @@ function setupUpdater() {
   ipcMain.on('install-update', () => autoUpdater.quitAndInstall());
 }
 
+ipcMain.handle('pick-files', async () => {
+  const r = await dialog.showOpenDialog(win, {
+    title: 'Import files',
+    buttonLabel: 'Import',
+    properties: ['openFile', 'multiSelections'],
+    filters: [
+      { name: 'Documents and media', extensions: ['md', 'txt', 'csv', 'json', 'html', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'mp4', 'webm', 'mp3', 'wav', 'zip'] },
+      { name: 'All files', extensions: ['*'] },
+    ],
+  });
+  return r.canceled ? [] : r.filePaths;
+});
 ipcMain.handle('pick-folder', async (_e, opts = {}) => {
   const r = await dialog.showOpenDialog(win, {
     title: opts.title || 'Choose a vault folder',

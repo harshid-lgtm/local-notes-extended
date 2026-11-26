@@ -1,10 +1,19 @@
 # Files in your vault
 
-Your vault can contain more than Markdown. Local Notes Extended lists other files in the sidebar, alongside your pages.
+Your vault can contain more than Markdown. Other files appear in a separate **Files** section in the sidebar, below Pages.
+
+## Import files
+
+Open the vault menu (the vault name at the top-left) and choose:
+
+- **Import files…** — choose one or more files from your computer.
+- **Import from a web address…** — download a file from a URL.
+
+Imported files are copied into the vault’s `Imports` folder. Imported Markdown files become pages; other files appear in Files.
 
 ## Open a file
 
-Click its row in the sidebar. A read-only preview opens in the app:
+Click its row in the Files section. A read-only preview opens in the app:
 
 | File type | Preview |
 | --- | --- |
@@ -20,7 +29,7 @@ The preview is read-only. Use **Download** to save a copy, or **Open default app
 
 ## Things to know
 
-- Files are shown in the same folder tree as pages.
+- Files are listed in their own sidebar section; Pages contains Markdown pages only.
 - Search and backlinks still index Markdown pages only.
 - A vault is still a normal folder; files added in Explorer, Finder, Obsidian or your file manager appear after switching back to the app.
 - PDF rendering uses the embedded Chromium viewer. If a PDF does not render, use **Open default app**.
