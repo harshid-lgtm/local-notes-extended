@@ -29,7 +29,7 @@ The update feed is the [local-notes-extended repository](https://github.com/hars
 
 ## Start page
 
-The desktop app opens on **Home**. A team session is restored to the team Home rather than the last page you had open. Use the **Search** button in the top bar or `Ctrl/⌘ K` at any time.
+The desktop app opens on **Home**, including when a team session is restored. It does not reopen the last team page on startup. Use the **Search** button in the top bar or `Ctrl/⌘ K` at any time.
 
 ## Saved sign-ins and preferences
 

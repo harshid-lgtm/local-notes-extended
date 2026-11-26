@@ -1767,7 +1767,7 @@ function installAIHooks() {
 
 // ================================================================== teams
 // From the desktop/local app: leave the local vault UI and open a team server.
-async function openTeam(conn) {
+async function openTeam(conn, { home = false } = {}) {
   await flushSave();
   closeAskPanel();
   const back = () => {
@@ -1778,7 +1778,7 @@ async function openTeam(conn) {
   };
   if (conn?.token) {
     store.set('ln:lastTeam', conn.url);
-    await startTeam(conn, { onExit: back });
+    await startTeam(conn, { onExit: back, home });
   } else await showTeamSignIn({ url: conn?.url || '', onBack: back });
 }
 
@@ -1920,7 +1920,7 @@ async function boot() {
   // If the app was closed while a team workspace was open, return there with
   // the saved token instead of making the person sign in again.
   const lastTeam = savedTeams().find((c) => c.url === store.get('ln:lastTeam', null) && c.token);
-  if (lastTeam) await openTeam(lastTeam);
+  if (lastTeam) await openTeam(lastTeam, { home: true });
   requestAnimationFrame(() => document.body.classList.add('ready'));
 }
 

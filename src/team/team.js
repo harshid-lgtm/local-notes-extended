@@ -69,7 +69,7 @@ export async function showTeamSignIn({ hosted = false, url = '', invite = null, 
         try { info.invite = await teamClient({ url: base }).get(`/api/invites/${invite}`); mode = 'signup'; } catch (e) { info.inviteError = e.message; }
       }
     } catch (e) {
-      info = { error: hosted ? e.message : 'Can’t reach a Local Notes Extended team server at that address.' };
+      info = { error: hosted ? e.message : 'Canâ€™t reach a Local Notes Extended team server at that address.' };
     }
     render();
   }
@@ -80,9 +80,9 @@ export async function showTeamSignIn({ hosted = false, url = '', invite = null, 
     if (kept.server !== undefined) url = kept.server;
     const first = info && !info.error && !info.hasUsers;
     const title = first ? 'Set up your team' : mode === 'signup' ? 'Create your account' : 'Welcome back';
-    const sub = first ? 'You’re the first person here — your account will be the admin.'
+    const sub = first ? 'Youâ€™re the first person here â€” your account will be the admin.'
       : info?.invite ? `${esc(info.invite.invitedBy || 'A teammate')} invited you to <b>${esc(info.invite.workspace)}</b>.`
-        : info?.name ? `Sign in to <b>${esc(info.name)}</b> on Local Notes Extended.` : 'Connect to your team’s Local Notes Extended server.';
+        : info?.name ? `Sign in to <b>${esc(info.name)}</b> on Local Notes Extended.` : 'Connect to your teamâ€™s Local Notes Extended server.';
     root.innerHTML = `
       <div class="wl-bg" aria-hidden="true"><div class="wl-glow"></div><div class="wl-grid"></div></div>
       <div class="auth">
@@ -150,7 +150,7 @@ function mountRoot() {
 }
 
 // ================================================================== session
-export async function startTeam(conn, { hosted = false, onExit = null } = {}) {
+export async function startTeam(conn, { hosted = false, onExit = null, home = false } = {}) {
   const api = teamClient(conn, { onAuthLost: () => signOut(true) });
   let me;
   try {
@@ -194,11 +194,14 @@ export async function startTeam(conn, { hosted = false, onExit = null } = {}) {
   await Promise.all([...T.workspaces.map((w) => loadPages(w.id)), loadShared()]);
   renderSidebar();
   listen();
-  const route = location.hash.match(/^#\/p\/([\w-]+)/);
-  const last = store.get(`ln:team:${conn.url}:last`, null);
-  const start = route?.[1] || last;
-  if (start && findPage(start)) await openPage(start, { replace: true });
-  else showHome();
+  if (home) showHome();
+  else {
+    const route = location.hash.match(/^#\/p\/([\w-]+)/);
+    const last = store.get(`ln:team:${conn.url}:last`, null);
+    const start = route?.[1] || last;
+    if (start && findPage(start)) await openPage(start, { replace: true });
+    else showHome();
+  }
 }
 
 export function stopTeam() {
@@ -651,8 +654,8 @@ function accountMenu(anchor) {
     { custom: h(`<div class="menu-vault">${avatar(T.me, 34)}<div><strong>${esc(T.me.name)}</strong><span>${esc(T.me.email)}</span></div></div>`) },
     { custom: h(`<div class="menu-server">${icon('drive', 13)}<span>${esc(T.api.base.replace(/^https?:\/\//, ''))}</span></div>`) },
     'sep',
-    { label: 'Profile & password…', icon: 'pencil', run: profileDialog },
-    ...(T.me.isAdmin ? [{ label: 'AI settings (admin)…', icon: 'sparkles', run: () => openAISettings() }] : []),
+    { label: 'Profile & passwordâ€¦', icon: 'pencil', run: profileDialog },
+    ...(T.me.isAdmin ? [{ label: 'AI settings (admin)â€¦', icon: 'sparkles', run: () => openAISettings() }] : []),
     { label: 'Appearance', icon: 'sun', run: () => themeMenuTeam(anchor) },
     ...(others.length ? ['sep', { header: 'Other servers' }, ...others.map((c) => ({ label: c.url.replace(/^https?:\/\//, ''), icon: 'drive', run: () => { const exit = T.onExit; stopTeam(); startTeam(c, { onExit: exit }); } }))] : []),
     'sep',
@@ -705,13 +708,13 @@ function workspaceMenu(wsId, anchor) {
   const manager = canManage(wsId);
   showMenu([
     { header: ws.name },
-    ...(manager ? [{ label: 'Share & members…', icon: 'arrow-up-right', run: () => shareDialog(wsId) }] : []),
+    ...(manager ? [{ label: 'Share & membersâ€¦', icon: 'arrow-up-right', run: () => shareDialog(wsId) }] : []),
     { label: 'Graph of this workspace', icon: 'graph', run: () => showGraph(wsId) },
     { label: 'Trash', icon: 'trash', run: () => trashDialog(wsId) },
-    ...(owner ? ['sep', { label: 'Rename…', icon: 'pencil', run: () => renameWorkspace(wsId) }] : []),
+    ...(owner ? ['sep', { label: 'Renameâ€¦', icon: 'pencil', run: () => renameWorkspace(wsId) }] : []),
     'sep',
     { label: 'Leave workspace', icon: 'logout', run: () => leaveWorkspace(wsId) },
-    ...(owner ? [{ label: 'Delete workspace…', icon: 'trash', danger: true, run: () => deleteWorkspace(wsId) }] : []),
+    ...(owner ? [{ label: 'Delete workspaceâ€¦', icon: 'trash', danger: true, run: () => deleteWorkspace(wsId) }] : []),
   ], anchor);
 }
 
@@ -721,8 +724,8 @@ function rowMenu(pageId, anchor) {
   const edit = canEditPage(p);
   showMenu([
     ...(edit ? [{ label: 'Add subpage', icon: 'file-plus', run: () => { T.expanded.add(p.id); createPage(p.workspaceId, p.id); } }] : []),
-    { label: 'Share…', icon: 'user-plus', run: () => pageShareDialog(p.id) },
-    ...(edit && moveTargets(p).length ? [{ label: 'Move to…', icon: 'move', run: () => moveMenu(p.id, anchor) }] : []),
+    { label: 'Shareâ€¦', icon: 'user-plus', run: () => pageShareDialog(p.id) },
+    ...(edit && moveTargets(p).length ? [{ label: 'Move toâ€¦', icon: 'move', run: () => moveMenu(p.id, anchor) }] : []),
     { label: 'Copy link', icon: 'link', run: () => copyLink(p.id) },
     { label: 'Copy as wikilink', icon: 'page-link', run: () => copy(`[[${p.title}]]`, 'Wikilink copied') },
     ...(edit ? ['sep', { label: 'Move to trash', icon: 'trash', danger: true, run: () => deletePage(p.id) }] : []),
@@ -734,8 +737,8 @@ async function newWorkspace() {
   const box = h(`<div class="cv">
     <div class="cv-art ws-art">${icon('library', 30, 1.5)}</div>
     <h3>Create a workspace</h3>
-    <p>A shared space for a team or project. Invite people once it’s created.</p>
-    <label class="field"><span>Name</span><input name="name" placeholder="Engineering, Marketing, Launch…"></label>
+    <p>A shared space for a team or project. Invite people once itâ€™s created.</p>
+    <label class="field"><span>Name</span><input name="name" placeholder="Engineering, Marketing, Launchâ€¦"></label>
     <div class="confirm-actions"><button class="btn ghost" data-no>Cancel</button><button class="btn primary" data-yes>Create</button></div></div>`);
   const m = openModal(box, { className: 'small' });
   const input = $('input', box);
@@ -770,7 +773,7 @@ async function renameWorkspace(wsId) {
 
 async function leaveWorkspace(wsId) {
   const ws = wsById(wsId);
-  if (!(await confirmDialog({ title: `Leave “${ws.name}”?`, body: 'You’ll lose access to its pages until someone invites you again.', confirm: 'Leave', danger: true }))) return;
+  if (!(await confirmDialog({ title: `Leave â€œ${ws.name}â€?`, body: 'Youâ€™ll lose access to its pages until someone invites you again.', confirm: 'Leave', danger: true }))) return;
   try {
     await T.api.del(`/api/workspaces/${wsId}/members/${T.me.id}`);
     if (T.current?.page.workspaceId === wsId) showHome();
@@ -780,7 +783,7 @@ async function leaveWorkspace(wsId) {
 
 async function deleteWorkspace(wsId) {
   const ws = wsById(wsId);
-  if (!(await confirmDialog({ title: `Delete “${ws.name}”?`, body: 'All of its pages, history and comments are permanently deleted for everyone. This can’t be undone.', confirm: 'Delete workspace', danger: true }))) return;
+  if (!(await confirmDialog({ title: `Delete â€œ${ws.name}â€?`, body: 'All of its pages, history and comments are permanently deleted for everyone. This canâ€™t be undone.', confirm: 'Delete workspace', danger: true }))) return;
   try {
     await T.api.del(`/api/workspaces/${wsId}`);
     if (T.current?.page.workspaceId === wsId) showHome();
@@ -789,7 +792,7 @@ async function deleteWorkspace(wsId) {
   } catch (e) { toast(e.message, { kind: 'error' }); }
 }
 
-function emailInviteDialog({ workspace, role, link, inviter }) {
+function emailInviteDialog({ workspace, role, link, inviter, toAddress = '' }) {
   const subject = `You're invited to "${workspace}" on Local Notes Extended`;
   const bodyFor = (name = '') => `Hi ${name || 'there'},
 
@@ -815,6 +818,7 @@ This invitation expires in 14 days. If you weren't expecting it, you can ignore 
   const to = $('[name=to]', box);
   const toName = $('[name=toName]', box);
   const body = $('[name=body]', box);
+  if (toAddress) to.value = toAddress;
   setTimeout(() => to.focus(), 30);
   toName.addEventListener('input', () => { body.value = bodyFor(toName.value.trim()); });
   $('[data-copy-message]', box).onclick = () => copy(body.value, 'Invitation copied');
@@ -842,7 +846,7 @@ async function shareDialog(wsId) {
     ? (T.supportsAdmin ? ['owner', 'admin', 'editor', 'viewer'] : ['owner', 'editor', 'viewer'])
     : (T.supportsAdmin ? ['admin', 'editor', 'viewer'] : ['editor', 'viewer']);
   const box = h(`<div class="share">
-    <div class="share-head"><div><h2>Share “${esc(ws.name)}”</h2><p>Members can see every page here except ones set to “Only people invited”. To share a single page, use Share on that page.</p></div>
+    <div class="share-head"><div><h2>Share â€œ${esc(ws.name)}â€</h2><p>Members can see every page here except ones set to â€œOnly people invitedâ€. To share a single page, use Share on that page.</p></div>
       <button class="icon-btn" data-close>${icon('x', 18)}</button></div>
     ${manager ? `<div class="share-invite">
       <div class="share-row"><span class="share-ic">${icon('link', 17)}</span><div class="share-copy"><strong>Invite with a link</strong><span>Anyone with the link can join for 14 days.</span></div>
@@ -851,7 +855,7 @@ async function shareDialog(wsId) {
       <div class="share-link" hidden><input readonly><button class="btn ghost small" data-copy>${icon('copy', 15)}<span>Copy link</span></button><button class="btn ghost small" data-copy-invite>${icon('copy', 15)}<span>Copy invitation</span></button><button class="btn ghost small" data-email>${icon('mail', 15)}<span>Email invite</span></button></div>
     </div>` : ''}
     <div class="ws-picker"></div>
-    <div class="share-members"><div class="pk-label">Members</div><div class="share-list">Loading…</div></div>
+    <div class="share-members"><div class="pk-label">Members</div><div class="share-list">Loadingâ€¦</div></div>
   </div>`);
   const m = openModal(box, { className: 'share-modal' });
   let memberIds = new Set();
@@ -874,6 +878,7 @@ This invitation expires in 14 days. If you weren't expecting it, you can ignore 
         toast(users.length === 1 ? `${users[0].name} added to ${ws.name}` : `${users.length} people added to ${ws.name}`, { kind: 'success' });
         renderMembers();
       },
+      onInviteEmail: (email, role) => inviteEmailToWorkspace(wsId, email, role),
     }));
   }
   $('[data-close]', box).onclick = () => m.close();
@@ -918,7 +923,7 @@ This invitation expires in 14 days. If you weren't expecting it, you can ignore 
 
 async function trashDialog(wsId) {
   const { pages } = await T.api.get(`/api/workspaces/${wsId}/trash`);
-  const box = h(`<div class="share"><div class="share-head"><div><h2>Trash</h2><p>Pages deleted from “${esc(wsById(wsId).name)}”.</p></div><button class="icon-btn" data-close>${icon('x', 18)}</button></div>
+  const box = h(`<div class="share"><div class="share-head"><div><h2>Trash</h2><p>Pages deleted from â€œ${esc(wsById(wsId).name)}â€.</p></div><button class="icon-btn" data-close>${icon('x', 18)}</button></div>
     <div class="share-list">${pages.length ? pages.map((p) => `<div class="member"><span class="share-ic">${icon('page', 16)}</span><div class="member-info"><strong>${esc(p.title)}</strong><span>Deleted ${timeAgo(p.deletedAt / 1000)}</span></div>
       ${canEdit(wsId) ? `<button class="btn ghost small" data-restore="${p.id}">Restore</button>` : ''}</div>`).join('') : '<p class="bl-empty pad">Trash is empty.</p>'}</div></div>`);
   const m = openModal(box, { className: 'share-modal' });
@@ -936,7 +941,7 @@ async function trashDialog(wsId) {
 }
 
 // Search everyone on this server by name or email, choose a role, and add them.
-function peoplePicker({ roles = ['editor', 'viewer'], role = 'editor', button = 'Invite', exclude = () => new Set(), onAdd }) {
+function peoplePicker({ roles = ['editor', 'viewer'], role = 'editor', button = 'Invite', exclude = () => new Set(), onAdd, onInviteEmail = null }) {
   const listId = `pp-emails-${Math.random().toString(36).slice(2, 8)}`;
   const el = h(`<div class="pp">
     <div class="pp-row">
@@ -963,8 +968,10 @@ function peoplePicker({ roles = ['editor', 'viewer'], role = 'editor', button = 
   };
   const renderList = () => {
     list.hidden = !results.length && !input.value.trim();
+    const email = input.value.trim();
+    const canInvite = onInviteEmail && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
     list.innerHTML = results.length ? results.map((u, i) => `<button class="pp-item ${i === active ? 'active' : ''}" data-i="${i}">${avatar(u, 26)}<span class="member-info"><strong>${esc(u.name)}</strong><span>${esc(u.email)}</span></span></button>`).join('')
-      : `<div class="pp-empty">No one on this server matches “${esc(input.value.trim())}”. Invite them to a workspace with a link first.</div>`;
+      : `<div class="pp-empty">No one on this server matches "${esc(email)}". ${canInvite ? `<button class="link-btn" data-invite-email>Invite ${esc(email)} by email</button>` : 'Invite them to a workspace with a link first.'}</div>`;
   };
   const search = async () => {
     const q = input.value.trim();
@@ -998,6 +1005,9 @@ function peoplePicker({ roles = ['editor', 'viewer'], role = 'editor', button = 
       e.preventDefault();
       if (results.length && !list.hidden) pick(results[active]);
       else if (picked.size) addBtn.click();
+      else if (onInviteEmail && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(input.value.trim())) {
+        onInviteEmail(input.value.trim(), $('.pp-role', el).value);
+      }
     } else if (e.key === 'Backspace' && !input.value && picked.size) {
       picked.delete([...picked.keys()].pop());
       renderChips();
@@ -1007,6 +1017,10 @@ function peoplePicker({ roles = ['editor', 'viewer'], role = 'editor', button = 
     }
   });
   list.addEventListener('mousedown', (e) => { e.preventDefault(); const b = e.target.closest('[data-i]'); if (b) pick(results[+b.dataset.i]); });
+  list.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-invite-email]');
+    if (b && onInviteEmail) onInviteEmail(input.value.trim(), $('.pp-role', el).value);
+  });
   chips.addEventListener('click', (e) => { const b = e.target.closest('[data-unpick]'); if (b) { picked.delete(b.closest('[data-user]').dataset.user); renderChips(); } });
   addBtn.addEventListener('click', async () => {
     if (!picked.size) return;
@@ -1024,9 +1038,20 @@ function peoplePicker({ roles = ['editor', 'viewer'], role = 'editor', button = 
   return el;
 }
 
+async function inviteEmailToWorkspace(wsId, email, role = 'editor') {
+  const ws = wsById(wsId);
+  if (!ws) return;
+  const safeRole = role === 'owner' ? 'admin' : role;
+  try {
+    const r = await T.api.post(`/api/workspaces/${wsId}/invites`, { role: safeRole });
+    const link = `${T.api.base}/#/invite/${r.token}`;
+    emailInviteDialog({ workspace: ws.name, role: r.role, link, inviter: T.me.name, toAddress: email });
+  } catch (e) { toast(e.message, { kind: 'error' }); }
+}
+
 async function pageShareDialog(pageId) {
   const box = h(`<div class="share page-share">
-    <div class="share-head"><div><h2>Share “<span class="ps-title"></span>”</h2><p class="ps-sub">Loading…</p></div>
+    <div class="share-head"><div><h2>Share â€œ<span class="ps-title"></span>â€</h2><p class="ps-sub">Loadingâ€¦</p></div>
       <button class="icon-btn" data-close>${icon('x', 18)}</button></div>
     <div class="ps-picker"></div>
     <div class="share-members"><div class="pk-label">People with access</div><div class="share-list"></div></div>
@@ -1068,6 +1093,13 @@ async function pageShareDialog(pageId) {
           toast(users.length === 1 ? `Shared with ${users[0].name}` : `Shared with ${users.length} people`, { kind: 'success' });
           await changed();
         },
+        // New people must join the workspace before a page can be shared with
+        // their account. Offer a complete workspace invitation instead of a
+        // dead end when the typed email is not on the server yet.
+        onInviteEmail: ws.kind === 'private' || restricted ? null : async (email, role) => {
+          m.close();
+          await inviteEmailToWorkspace(ws.id, email, role);
+        },
       }));
       setTimeout(() => holder.firstChild?.focus(), 40);
     }
@@ -1081,7 +1113,7 @@ async function pageShareDialog(pageId) {
       if (u.removable && u.id === T.me.id) return `<span class="member-role">${ROLE_LABEL[u.role]}</span><button class="icon-btn" data-unshare title="Remove yourself">${icon('logout', 15)}</button>`;
       return `<span class="member-role">${ROLE_LABEL[u.role]}</span><span class="member-gap"></span>`;
     };
-    const why = (u) => u.inheritedFrom ? `Access from “${esc(u.inheritedFrom)}”`
+    const why = (u) => u.inheritedFrom ? `Access from â€œ${esc(u.inheritedFrom)}â€`
       : u.via === 'owner' ? (priv ? 'Owner' : `Owner of ${esc(ws.name)}`)
         : u.via === 'member' ? `Member of ${esc(ws.name)}` : esc(u.email || '');
     $('.share-list', box).innerHTML = listed.map((u) => `<div class="member" data-user="${u.id}">
@@ -1092,15 +1124,15 @@ async function pageShareDialog(pageId) {
     const gen = $('.ps-general', box);
     if (priv) gen.innerHTML = '';
     else if (data.restrictedBy) {
-      gen.innerHTML = `<div class="pk-label">General access</div><div class="ga-row"><span class="ga-ic restricted">${icon('lock', 17)}</span><div class="member-info"><strong>Only people invited</strong><span>Set on the parent page “${esc(data.restrictedBy.title)}”.</span></div>
+      gen.innerHTML = `<div class="pk-label">General access</div><div class="ga-row"><span class="ga-ic restricted">${icon('lock', 17)}</span><div class="member-info"><strong>Only people invited</strong><span>Set on the parent page â€œ${esc(data.restrictedBy.title)}â€.</span></div>
         <button class="btn ghost small" data-open-parent="${data.restrictedBy.id}">Open</button></div>`;
     } else {
       gen.innerHTML = `<div class="pk-label">General access</div><div class="ga-row"><span class="ga-ic ${restricted ? 'restricted' : ''}">${icon(restricted ? 'lock' : 'library', 17)}</span>
         <div class="member-info">${data.canManage ? `<select data-mode><option value="workspace" ${!restricted ? 'selected' : ''}>Everyone in ${esc(ws.name)}</option><option value="restricted" ${restricted ? 'selected' : ''}>Only people invited</option></select>`
           : `<strong>${restricted ? 'Only people invited' : `Everyone in ${esc(ws.name)}`}</strong>`}
-        <span>${restricted ? 'Hidden from the rest of the workspace, including search and graph.' : `${ws.members} member${ws.members === 1 ? '' : 's'} · their workspace role applies`}</span></div></div>`;
+        <span>${restricted ? 'Hidden from the rest of the workspace, including search and graph.' : `${ws.members} member${ws.members === 1 ? '' : 's'} Â· their workspace role applies`}</span></div></div>`;
     }
-    $('.ps-foot-note', box).innerHTML = data.canManage ? '' : 'Only the page’s creator or a workspace owner can change access.';
+    $('.ps-foot-note', box).innerHTML = data.canManage ? '' : 'Only the pageâ€™s creator or a workspace owner can change access.';
     const wsBtn = $('[data-ws-share]', box);
     wsBtn.hidden = priv || !wsById(ws.id);
     $('span', wsBtn).textContent = `${ws.name} members`;
@@ -1124,7 +1156,7 @@ async function pageShareDialog(pageId) {
     if (parent) { m.close(); openPage(parent.dataset.openParent); return; }
     if (!rm) return;
     const uid = rm.closest('[data-user]').dataset.user;
-    if (uid === T.me.id && !(await confirmDialog({ title: 'Remove your access?', body: 'You won’t be able to open this page until someone shares it with you again.', confirm: 'Remove', danger: true }))) return;
+    if (uid === T.me.id && !(await confirmDialog({ title: 'Remove your access?', body: 'You wonâ€™t be able to open this page until someone shares it with you again.', confirm: 'Remove', danger: true }))) return;
     try {
       await T.api.del(`/api/pages/${pageId}/shares/${uid}`);
       if (uid === T.me.id) { m.close(); await loadShared(); renderSidebar(); checkCurrent(); return; }
@@ -1148,10 +1180,10 @@ function moveMenu(pageId, anchor) {
 
 async function movePage(p, ws) {
   const kids = childrenOf(sectionOf(p), p.id).length;
-  const into = ws.kind === 'private' ? 'your private space' : `“${ws.name}”`;
-  const body = ws.kind === 'private' ? `${kids ? 'It and its subpages' : 'It'} will be visible only to you and anyone it’s shared with.`
-    : `Everyone in ${ws.name} will be able to see ${kids ? 'it and its subpages' : 'it'}, unless it’s set to “Only people invited”.`;
-  if (!(await confirmDialog({ title: `Move “${p.title}” to ${into}?`, body: `${body} History and comments move with it.`, confirm: 'Move' }))) return;
+  const into = ws.kind === 'private' ? 'your private space' : `â€œ${ws.name}â€`;
+  const body = ws.kind === 'private' ? `${kids ? 'It and its subpages' : 'It'} will be visible only to you and anyone itâ€™s shared with.`
+    : `Everyone in ${ws.name} will be able to see ${kids ? 'it and its subpages' : 'it'}, unless itâ€™s set to â€œOnly people invitedâ€.`;
+  if (!(await confirmDialog({ title: `Move â€œ${p.title}â€ to ${into}?`, body: `${body} History and comments move with it.`, confirm: 'Move' }))) return;
   try {
     await T.api.post(`/api/pages/${p.id}/move`, { workspaceId: ws.id });
     T.collapsedWs.delete(ws.id);
@@ -1181,7 +1213,7 @@ async function createPage(wsId, parentId = null, title = 'Untitled') {
 async function deletePage(id) {
   const p = findPage(id);
   const kids = childrenOf(sectionOf(p), id).length;
-  if (!(await confirmDialog({ title: `Move “${p.title}” to trash?`, body: `${kids ? 'This page and its subpages' : 'This page'} will move to the workspace trash. Anyone in the workspace can restore it.`, confirm: 'Move to trash', danger: true }))) return;
+  if (!(await confirmDialog({ title: `Move â€œ${p.title}â€ to trash?`, body: `${kids ? 'This page and its subpages' : 'This page'} will move to the workspace trash. Anyone in the workspace can restore it.`, confirm: 'Move to trash', danger: true }))) return;
   try {
     await T.api.del(`/api/pages/${id}`);
     if (T.current?.page.id === id || isDescendant(T.current?.page.id, id)) showHome();
@@ -1370,7 +1402,7 @@ function setLive(status) {
   const el = $('#t-live', T.root);
   el.hidden = false;
   el.dataset.state = status;
-  el.innerHTML = status === 'connected' ? '<i></i>Live' : status === 'connecting' ? '<i></i>Connecting…' : '<i></i>Offline — changes will sync';
+  el.innerHTML = status === 'connected' ? '<i></i>Live' : status === 'connecting' ? '<i></i>Connectingâ€¦' : '<i></i>Offline â€” changes will sync';
 }
 
 function renderCrumbs() {
@@ -1502,7 +1534,7 @@ function localTeamExport(c, format) {
     return false;
   }
   downloadBlob(new Blob([body], { type: mime }), `${base}.${format}`);
-  toast('Exported from this device — this team server does not have the export endpoint yet', { kind: 'success', timeout: 4200 });
+  toast('Exported from this device â€” this team server does not have the export endpoint yet', { kind: 'success', timeout: 4200 });
   return true;
 }
 
@@ -1510,7 +1542,7 @@ function exportTeamPage(format) {
   const c = T.current;
   if (!c) return;
   const labels = { docx: 'Word document', pdf: 'PDF', txt: 'plain text', html: 'HTML', md: 'Markdown' };
-  toast(`Preparing ${labels[format] || format.toUpperCase()}…`, { timeout: 1600 });
+  toast(`Preparing ${labels[format] || format.toUpperCase()}â€¦`, { timeout: 1600 });
   T.api.download(`/api/pages/${c.page.id}/export`, { format })
     .then(({ blob, filename }) => {
       downloadBlob(blob, filename);
@@ -1519,7 +1551,7 @@ function exportTeamPage(format) {
     .catch((e) => {
       if ((e.status === 404 || e.status === 405 || e.status === 501) && localTeamExport(c, format)) return;
       const hint = e.status === 404 ? ' This team server may need updating for Word and PDF export.' : '';
-      toast(`Couldn’t export: ${e.message}${hint}`, { kind: 'error' });
+      toast(`Couldnâ€™t export: ${e.message}${hint}`, { kind: 'error' });
     });
 }
 
@@ -1543,11 +1575,11 @@ function pageMenu(anchor) {
   if (!c) return;
   const edit = c.role !== 'viewer';
   showMenu([
-    { label: 'Share…', icon: 'user-plus', run: () => pageShareDialog(c.page.id) },
-    ...(edit && moveTargets(c.page).length ? [{ label: 'Move to…', icon: 'move', run: () => moveMenu(c.page.id, anchor) }] : []),
+    { label: 'Shareâ€¦', icon: 'user-plus', run: () => pageShareDialog(c.page.id) },
+    ...(edit && moveTargets(c.page).length ? [{ label: 'Move toâ€¦', icon: 'move', run: () => moveMenu(c.page.id, anchor) }] : []),
     { label: 'Copy link', icon: 'link', run: () => copyLink(c.page.id) },
     { label: 'Copy as markdown', icon: 'code', run: () => copy(getMarkdown(c.editor), 'Markdown copied') },
-    { label: 'Export…', icon: 'download', run: () => teamExportMenu(anchor) },
+    { label: 'Exportâ€¦', icon: 'download', run: () => teamExportMenu(anchor) },
     { label: 'Version history', icon: 'clock', run: () => openDrawer('history') },
     { label: 'Summarize with AI', icon: 'sparkles', run: () => summarizePage(c.editor, 'summary') },
     { label: 'Find action items with AI', icon: 'todo', run: () => summarizePage(c.editor, 'actions') },
@@ -1556,7 +1588,7 @@ function pageMenu(anchor) {
   ], anchor, { align: 'end' });
 }
 
-const copy = (text, msg) => copyText(text).then((ok) => toast(ok ? msg : 'Couldn’t copy — select the text and press Ctrl+C', { kind: ok ? 'success' : 'error' }));
+const copy = (text, msg) => copyText(text).then((ok) => toast(ok ? msg : 'Couldnâ€™t copy â€” select the text and press Ctrl+C', { kind: ok ? 'success' : 'error' }));
 const copyLink = (id) => copy(`${T.api.base}/#/p/${id}`, 'Link copied');
 
 // ================================================================== bubble menu (format + comment)
@@ -1693,14 +1725,14 @@ async function renderComments() {
     <div class="drawer-body">
       ${c.pendingThread ? `<div class="thread new focus" data-thread="${c.pendingThread.id}">
         <div class="thread-quote">${esc(c.pendingThread.quote)}</div>
-        ${composer('Add a comment… use @ to mention')}
+        ${composer('Add a commentâ€¦ use @ to mention')}
       </div>` : ''}
       ${threads.length ? threads.map((t) => `<div class="thread ${t.resolvedAt ? 'resolved' : ''}" data-thread="${t.id}">
         <div class="thread-top"><div class="thread-quote">${esc(t.quote || 'Comment')}</div>
           ${c.role !== 'viewer' ? `<button class="icon-btn tiny" data-resolve title="${t.resolvedAt ? 'Reopen' : 'Resolve'}">${icon(t.resolvedAt ? 'arrow-up-right' : 'check', 15, 2)}</button>` : ''}</div>
         ${t.comments.map((m) => { const u = personOf(m.userId); return `<div class="cmt">${avatar(u, 24)}<div class="cmt-main"><div class="cmt-head"><strong>${esc(u.name)}</strong><span>${timeAgo(m.createdAt / 1000)}</span>
           ${m.userId === T.me.id ? `<button class="cmt-del" data-del="${m.id}" title="Delete">${icon('trash', 13)}</button>` : ''}</div><div class="cmt-body">${commentBody(m.body, people)}</div></div></div>`; }).join('')}
-        ${c.role !== 'viewer' && !t.resolvedAt ? composer('Reply…', true) : ''}
+        ${c.role !== 'viewer' && !t.resolvedAt ? composer('Replyâ€¦', true) : ''}
       </div>`).join('') : (c.pendingThread ? '' : `<div class="drawer-empty">${icon('note', 28, 1.4)}<strong>${show === 'open' ? 'No open comments' : 'Nothing resolved yet'}</strong><span>${show === 'open' ? 'Select text and press Comment to start a discussion.' : ''}</span></div>`)}
     </div>`;
   d.querySelector('.thread.new textarea')?.focus();
@@ -1879,7 +1911,7 @@ async function previewVersion(id) {
   const c = T.current;
   const html = md.render(v.markdown.replace(/!?\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_, a, b) => `**${b || a}**`));
   const box = h(`<div class="ver-preview">
-    <div class="share-head"><div><h2>${esc(v.title)}</h2><p>${new Date(v.createdAt).toLocaleString()}${v.label ? ` · ${esc(v.label)}` : ''}</p></div><button class="icon-btn" data-close>${icon('x', 18)}</button></div>
+    <div class="share-head"><div><h2>${esc(v.title)}</h2><p>${new Date(v.createdAt).toLocaleString()}${v.label ? ` Â· ${esc(v.label)}` : ''}</p></div><button class="icon-btn" data-close>${icon('x', 18)}</button></div>
     <div class="ver-doc prose">${html || '<p class="bl-empty">This version was empty.</p>'}</div>
     <div class="ver-foot"><span>Restoring replaces the page for everyone. The current text is saved as a version first.</span>
       ${c?.role !== 'viewer' ? `<button class="btn primary" data-restore>${icon('clock', 16)}<span>Restore this version</span></button>` : ''}</div>
@@ -1909,8 +1941,8 @@ async function renderInbox() {
         ${avatar({ name: n.actorName, color: n.actorColor }, 30)}
         <span class="notif-main"><span class="notif-line"><strong>${esc(n.actorName || 'Someone')}</strong> ${verb[n.kind] || ''} <strong>${esc(byWs(n.kind) ? n.workspaceName || '' : n.pageTitle || 'a page')}</strong>${n.kind === 'shared' ? ' with you' : ''}</span>
           ${n.text && !byWs(n.kind) && n.kind !== 'shared' ? `<span class="notif-text">${esc(n.text)}</span>` : ''}
-          <span class="notif-time">${timeAgo(n.createdAt / 1000)}${n.workspaceName ? ` · ${esc(n.workspaceName)}` : ''}</span></span>
-      </button>`).join('') : `<div class="drawer-empty">${icon('note', 28, 1.4)}<strong>You’re all caught up</strong><span>Mentions, replies and pages shared with you show up here.</span></div>`}
+          <span class="notif-time">${timeAgo(n.createdAt / 1000)}${n.workspaceName ? ` Â· ${esc(n.workspaceName)}` : ''}</span></span>
+      </button>`).join('') : `<div class="drawer-empty">${icon('note', 28, 1.4)}<strong>Youâ€™re all caught up</strong><span>Mentions, replies and pages shared with you show up here.</span></div>`}
     </div>`;
 }
 
@@ -1954,15 +1986,15 @@ function renderHome() {
     </div>
     ${recent.length ? `<section class="home-sec"><h2>${icon('clock', 15)}Recently updated</h2><div class="cards">${recent.map((p) => `<button class="card" data-open="${p.id}" style="--hue:${hue(p.title)}">
       <span class="card-cover"></span><span class="card-icon">${icon('page', 18)}</span><span class="card-title">${esc(p.title)}</span>
-      <span class="card-meta">${icon(p.ws.kind === 'private' ? 'lock' : 'library', 12)}<span>${esc(p.ws.kind === 'private' ? 'Private' : p.ws.name)}</span><i>·</i><span>${timeAgo(p.updatedAt / 1000)}</span></span></button>`).join('')}</div></section>` : ''}
+      <span class="card-meta">${icon(p.ws.kind === 'private' ? 'lock' : 'library', 12)}<span>${esc(p.ws.kind === 'private' ? 'Private' : p.ws.name)}</span><i>Â·</i><span>${timeAgo(p.updatedAt / 1000)}</span></span></button>`).join('')}</div></section>` : ''}
   </div>`;
 }
 
 function openSearch() {
   const box = h(`<div class="palette">
-    <div class="pl-input">${icon('search', 18)}<input placeholder="Search all your workspaces…" spellcheck="false"><kbd>esc</kbd></div>
+    <div class="pl-input">${icon('search', 18)}<input placeholder="Search all your workspacesâ€¦" spellcheck="false"><kbd>esc</kbd></div>
     <div class="pl-results"></div>
-    <div class="pl-foot"><span><kbd>↑</kbd><kbd>↓</kbd>Navigate</span><span><kbd>↵</kbd>Open</span></div></div>`);
+    <div class="pl-foot"><span><kbd>â†‘</kbd><kbd>â†“</kbd>Navigate</span><span><kbd>â†µ</kbd>Open</span></div></div>`);
   const modal = openModal(box, { className: 'palette-modal' });
   const input = $('input', box);
   const results = $('.pl-results', box);
@@ -1979,7 +2011,7 @@ function openSearch() {
     items = [...names.map((p) => p.id), ...extra.map((r) => r.id)];
     results.innerHTML = (names.length ? `<div class="pl-group">${ql ? 'Pages' : 'Recent'}</div>${names.map((p, i) => `<button class="pl-item" data-i="${i}"><span class="pl-icon">${icon('page', 17)}</span><span class="pl-body"><span class="pl-title">${esc(p.title)}</span>${content.find((r) => r.id === p.id)?.snippet ? `<span class="pl-snippet">${esc(content.find((r) => r.id === p.id).snippet)}</span>` : ''}</span><span class="pl-folder">${esc(wsLabel(p.ws))}</span></button>`).join('')}` : '')
       + (extra.length ? `<div class="pl-group">Mentions in content</div>${extra.map((r, j) => `<button class="pl-item" data-i="${names.length + j}"><span class="pl-icon">${icon('text', 17)}</span><span class="pl-body"><span class="pl-title">${esc(r.title)}</span><span class="pl-snippet">${esc(r.snippet)}</span></span><span class="pl-folder">${esc(wsLabel(r.ws))}</span></button>`).join('')}` : '')
-      || `<div class="pl-empty">${icon('search', 26, 1.4)}<span>No pages match “${esc(q)}”</span></div>`;
+      || `<div class="pl-empty">${icon('search', 26, 1.4)}<span>No pages match â€œ${esc(q)}â€</span></div>`;
     index = Math.min(index, Math.max(0, items.length - 1));
     results.querySelectorAll('.pl-item').forEach((b) => b.classList.toggle('active', +b.dataset.i === index));
   };
@@ -2030,15 +2062,15 @@ async function showGraph(wsId = null, focus = null) {
   $('#t-page', T.root).hidden = true;
   $('#t-home', T.root).hidden = true;
   for (const b of ['#t-comments', '#t-history', '#t-more', '#t-share', '#t-ro', '#t-live']) $(b, T.root).hidden = true;
-  $('#t-crumbs', T.root).innerHTML = `<span class="crumb current">${icon('graph', 15)}<span>${esc(focus ? `Local graph · ${findPage(focus)?.title || ''}` : `Graph · ${ws.kind === 'private' ? 'Private' : ws.name}`)}</span></span>`;
+  $('#t-crumbs', T.root).innerHTML = `<span class="crumb current">${icon('graph', 15)}<span>${esc(focus ? `Local graph Â· ${findPage(focus)?.title || ''}` : `Graph Â· ${ws.kind === 'private' ? 'Private' : ws.name}`)}</span></span>`;
   const gv = $('#t-graph', T.root);
   gv.hidden = false;
   const folders = [...new Set(data.nodes.filter((n) => !n.unresolved).map((n) => n.folder))].sort();
   setFolders(folders);
   gv.innerHTML = `<canvas class="gv-canvas"></canvas>
-    <div class="gv-panel pop"><div class="gv-search">${icon('search', 15)}<input placeholder="Filter pages…" spellcheck="false"></div>
+    <div class="gv-panel pop"><div class="gv-search">${icon('search', 15)}<input placeholder="Filter pagesâ€¦" spellcheck="false"></div>
       <div class="gv-ws">${T.workspaces.map((w) => `<button class="${w.id === ws.id ? 'on' : ''}" data-gws="${w.id}">${esc(w.kind === 'private' ? 'Private' : w.name)}</button>`).join('')}</div>
-      <div class="gv-stats">${data.nodes.filter((n) => !n.unresolved).length} pages · ${data.edges.length} links</div></div>
+      <div class="gv-stats">${data.nodes.filter((n) => !n.unresolved).length} pages Â· ${data.edges.length} links</div></div>
     <div class="gv-legend">${folders.filter(Boolean).map((f) => `<span><i style="background:${folderColor(f, document.documentElement.dataset.theme === 'dark')}"></i>${esc(f)}</span>`).join('')}</div>
     <div class="gv-zoom"><button class="icon-btn" data-z="in">${icon('zoom-in', 17)}</button><button class="icon-btn" data-z="out">${icon('zoom-out', 17)}</button><button class="icon-btn" data-z="fit">${icon('fit', 17)}</button></div>`;
   T.graph?.destroy();

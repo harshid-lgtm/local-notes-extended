@@ -2,6 +2,19 @@
 
 All notable changes to **Local Notes Extended**. Versions before 1.4.0 were the original Local Notes build; 1.4.0 introduced the separate Extended product identity.
 
+## 1.4.13 — 26 November 2026
+
+### Fixed
+
+- The desktop app now opens on Home on launch, including when a team session is restored. The last open team page is no longer reopened on startup.
+- Search is visible in the top bar at all widths.
+
+### Improved sharing
+
+- In **Share**, typing an email that is not on the server now offers **Invite … by email** directly instead of a dead end.
+- The invitation creates a workspace link and opens the full email draft with the address prefilled.
+- Existing server members still appear as selectable results and can be given page access immediately.
+
 ## 1.4.12 — 26 November 2026
 
 ### Added

@@ -30,6 +30,7 @@ You can belong to as many workspaces as you like, so a company can have one per 
 Open a workspace's `•••` menu → **Share & members**. Workspace owners and admins can:
 
 - **Add people already on this server**: type a name or email, pick a role and click **Add**. They're notified and the workspace appears in their sidebar straight away.
+- **Invite by email** for someone who is not on the server yet: type their email and choose the **Invite … by email** action. The app creates a join link and opens your email app with the invitation ready to send.
 - **Invite with a link** for people who don't have an account yet. Links work for 14 days.
 - **Copy invitation** to copy a ready-to-send message with the workspace name, inviter, role and link.
 - **Email invite** to open your own email app with that message filled in. Local Notes Extended has no mail server, so the app cannot send the email itself; press Send in your mail app.
